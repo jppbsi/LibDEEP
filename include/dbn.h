@@ -11,7 +11,7 @@ typedef struct _DBN{
 }DBN;
 
 /* Allocation and deallocation */
-DBN *CreateDBN(int n_visible_layers, int n_hidden_layers, int n_labels, int n_layers); /* It allocates an DBN */
+DBN *CreateDBN(int n_visible_units, gsl_vector *n_hidden_units, int n_labels, int n_layers) /* It allocates an DBN */
 void DestroyDBN(DBN **d); /* It deallocates an DBN */
 
 /* DBN information */
