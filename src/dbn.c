@@ -19,7 +19,6 @@ DBN *CreateDBN(int n_visible_units, gsl_vector *n_hidden_units, int n_labels, in
         d->m = (RBM **)malloc(d->n_layers*sizeof(RBM *));
         
         //only the first layer has the number of visible inputs equals to the number of features
-        fprintf(stderr,"\nn_hidden_units[0]: %d", (int)gsl_vector_get(n_hidden_units, 0));
         d->m[0] = CreateRBM(n_visible_units, (int)gsl_vector_get(n_hidden_units, 0), n_labels);
         for(i = 1; i < d->n_layers; i++)
             d->m[i] = CreateRBM((int)gsl_vector_get(n_hidden_units, i-1), (int)gsl_vector_get(n_hidden_units, i), n_labels);
