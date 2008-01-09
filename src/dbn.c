@@ -298,3 +298,55 @@ void ComputeBackPropagateError(gsl_vector *s, gsl_vector *output, DBN *d){
     
     return output;
 }*/
+
+/* Data conversion */
+
+/* It generates a subgraph using the learned features from the top layer of the DBN over the dataset
+Parameters: [d, D]
+d: trained DBN
+D: input dataset */
+Subgraph *DBN2Subgraph(DBN *d, Dataset *D){
+    Subgraph *g = NULL;
+    gsl_vector *aux = NULL, *h_prime = NULL;
+    int i, l;
+    
+    if(d && D){
+    
+        g = CreateSubgraph(D->size);
+        g->nfeats = d->m[d->n_layers-1]->n_hidden_layer_neurons;
+        g->nlabels = D->nlabels;
+        
+        for(i = 0; i < D->size; i++){        
+            
+            // going up
+            aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
+            gsl_vector_memcpy(aux, D->sample[i].feature);
+            
+            for(l = 0; l < d->n_layers; l++){
+                h_prime = getProbabilityTurningOnHiddenUnit(d->m[l], aux);
+                gsl_vector_free(aux);
+                
+                if(l < d->n_layers-1){
+                    aux = gsl_vector_calloc(d->m[l+1]->n_visible_layer_neurons);
+                    gsl_vector_memcpy(aux, h_prime);
+                }
+            }
+            
+            g->node[i].feat = AllocFloatArray(g->nfeats);
+            g->node[i].truelabel = D->sample[i].label;
+            g->node[i].label = D->sample[i].predict;
+            g->node[i].position = i;
+            
+            for(l = 0; l < g->nfeats; l++)
+                g->node[i].feat[l] = (float)gsl_vector_get(h_prime, l);
+            
+            gsl_vector_free(h_prime);
+            
+        }
+        
+        return g;
+    }else{
+        fprintf(stderr,"\nThere is no DBN and/or Dataset allocated @DBN2Subgraph\n");
+        return NULL;
+    }
+}

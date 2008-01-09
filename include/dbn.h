@@ -31,5 +31,8 @@ gsl_vector *ForwardPass(gsl_vector *s, DBN *d); /* It executes the forward pass 
 
 /* Image reconstruction */
 //IplImage *DBNReconstructImage(DBN *d, IplImage *img); // It reconstructs an input image given a trained DBN
-    
+
+/* Data conversion */
+Subgraph *DBN2Subgraph(DBN *d, Dataset *D); /* It generates a subgraph using the learned features from the top layer of the DBN over the dataset */
+
 #endif
