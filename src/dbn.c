@@ -329,6 +329,7 @@ Subgraph *DBN2Subgraph(DBN *d, Dataset *D){
                 if(l < d->n_layers-1){
                     aux = gsl_vector_calloc(d->m[l+1]->n_visible_layer_neurons);
                     gsl_vector_memcpy(aux, h_prime);
+                    gsl_vector_free(h_prime);
                 }
             }
             
