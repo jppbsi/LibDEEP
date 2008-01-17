@@ -196,7 +196,7 @@ void InitializeWeights(RBM *m){
 	srand(time(NULL));
 	T = gsl_rng_default;
 	r = gsl_rng_alloc(T);
-	gsl_rng_set(r, random_seed());
+	gsl_rng_set(r, random_seed_deep());
     
         for(i = 0; i < m->n_visible_layer_neurons; i++){
             for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -223,7 +223,7 @@ void InitializeLabelWeights(RBM *m){
         srand(time(NULL));
 	T = gsl_rng_default;
 	r = gsl_rng_alloc(T);
-	gsl_rng_set(r, random_seed());
+	gsl_rng_set(r, random_seed_deep());
         
         for(i = 0; i < m->n_labels; i++)
             for(j = 0; j < m->n_hidden_layer_neurons; j++)
@@ -351,7 +351,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());;
+    gsl_rng_set(r, random_seed_deep());
     
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
@@ -552,7 +552,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());;
+    gsl_rng_set(r, random_seed_deep());
     
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
@@ -761,7 +761,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());;
+    gsl_rng_set(r, random_seed_deep());
     
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
@@ -984,7 +984,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());
+    gsl_rng_set(r, random_seed_deep());
     
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
@@ -1212,7 +1212,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());
+    gsl_rng_set(r, random_seed_deep());
     
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
@@ -1779,7 +1779,7 @@ gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());
+    gsl_rng_set(r, random_seed_deep());
     
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
     
@@ -1836,7 +1836,7 @@ double getPseudoLikelihood(RBM *m, gsl_vector *x){
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());
+    gsl_rng_set(r, random_seed_deep());
     
     x_flipped = gsl_vector_alloc(x->size);
     gsl_vector_memcpy(x_flipped, x);

@@ -229,3 +229,10 @@ gsl_vector *label2binary_gsl_vector(int l, int n_bits){
     return y;
     
 }
+
+/* It generates a random seed */
+unsigned long int random_seed_deep(){
+    struct timeval tv;
+    gettimeofday(&tv,0);
+    return (tv.tv_sec + tv.tv_usec);
+}
