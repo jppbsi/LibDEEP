@@ -19,6 +19,7 @@ $(OBJ)/math_functions.o \
 $(OBJ)/rbm.o \
 $(OBJ)/auxiliary.o \
 $(OBJ)/dbn.o \
+$(OBJ)/regression.o \
 
 	ar csr $(LIB)/libDeep.a \
 $(OBJ)/deep.o \
@@ -26,6 +27,7 @@ $(OBJ)/math_functions.o \
 $(OBJ)/rbm.o \
 $(OBJ)/auxiliary.o \
 $(OBJ)/dbn.o \
+$(OBJ)/regression.o \
 
 $(OBJ)/deep.o: $(SRC)/deep.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/deep.c \
@@ -46,6 +48,10 @@ $(OBJ)/auxiliary.o: $(SRC)/auxiliary.c
 $(OBJ)/dbn.o: $(SRC)/dbn.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/dbn.c \
 	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/dbn.o -fopenmp `pkg-config --cflags --libs gsl`
+
+$(OBJ)/regression.o: $(SRC)/regression.c
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/regression.c \
+	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/regression.o -fopenmp `pkg-config --cflags --libs gsl`
 
 clean:
 	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o

@@ -7,13 +7,16 @@ extern "C" {
 
 /* LibOPF library */
 #include "OPF.h"
+
+typedef void (*mac_prtFun)(Subgraph *, ...);
     
 /* libDeep libraries */
 #include "auxiliary.h"
 #include "rbm.h"
 #include "math_functions.h"
 #include "dbn.h"
-    
+#include "regression.h"
+
 #ifdef __cplusplus
 }
 #endif
