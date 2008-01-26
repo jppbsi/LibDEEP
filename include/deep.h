@@ -5,10 +5,19 @@
 extern "C" {
 #endif
 
+/* system libraries */
+#include <stdarg.h>
+
+/* GSL libraries */
+#include <gsl/gsl_randist.h>
+#include <gsl/gsl_rng.h>
+#include <gsl/gsl_matrix.h>
+#include <gsl/gsl_vector.h>
+
 /* LibOPF library */
 #include "OPF.h"
 
-typedef void (*mac_prtFun)(Subgraph *, ...);
+typedef void (*mac_prtFun)(gsl_matrix *, gsl_vector *, ...);
     
 /* libDeep libraries */
 #include "auxiliary.h"
