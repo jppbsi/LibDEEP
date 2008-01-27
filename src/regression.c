@@ -18,8 +18,7 @@ gsl_vector *LinearRegression_Fitting(gsl_matrix *X, gsl_vector *Y, int FUNCTION_
     gsl_rng *r = NULL;
     int i;
     double alpha;
-	
-                    
+	               
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
@@ -63,7 +62,7 @@ double Linear_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
             row = gsl_matrix_row(X, i);
             MSE+=pow((h(&row.vector, w)-gsl_vector_get(Y, i)),2); //tmp = sum(h(x_i)-y_i)^2
         }
-        return MSE;
+        return MSE/(2*X->size1);
         
     }else{
         fprintf(stderr,"\nThere is no X and/or w allocated @Linear_Regression.\n");
@@ -78,20 +77,20 @@ w: learned parameters of the model
 Y: target values
 j: ID of the feature
 ---
-Output: mean squared error */
+Output: cost */
 double Linear_RegressionPartialDerivative(gsl_matrix *X, gsl_vector *w, gsl_vector *Y, int j){
-    double cost, tmp;
+    double partial_derivative_value, tmp;
     gsl_vector_view x;
     int i;
     
     if(X && w){
         
-        cost = 0.0;
+        partial_derivative_value = 0.0;
         for(i = 0; i < X->size1; i++){ // it runs over all data samples
-            x = gsl_matrix_row(X, i);            
-            cost+=((h(&x.vector, w)-gsl_vector_get(Y, i))*gsl_vector_get(&x.vector, j)); //tmp = sum(h(x_i)-y_i)x_i^j
+            x = gsl_matrix_row(X, i); // it picks sample x_i            
+            partial_derivative_value+=((h(&x.vector, w)-gsl_vector_get(Y, i))*gsl_vector_get(&x.vector, j)); //tmp = sum(h(x_i)-y_i)x_i^j
         }
-        return cost;
+        return partial_derivative_value;
         
     }else{
         fprintf(stderr,"\nThere is no X and/or w allocated @Linear_Regression.\n");
