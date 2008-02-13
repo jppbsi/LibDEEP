@@ -179,6 +179,42 @@ double BernoulliDBNTrainingbyPersistentContrastiveDivergence(Dataset *D, DBN *d,
     
     return error;
 }
+
+/* It trains a DBN for image reconstruction using Fast Persistent Contrastive Divergence */
+double BernoulliDBNTrainingbyFastPersistentContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size){
+    double error, aux;
+    Dataset *tmp1 = NULL, *tmp2 = NULL;
+    int i, j, z, id;
+    
+    tmp1 = CopyDataset(D);
+    
+    for(id = 0; id < d->n_layers; id++){
+        fprintf(stderr,"\nTraining layer %d ... ", id+1);
+        error = BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size);
+        
+        /* it updates the last layer to be the input to the next RBM */
+        tmp2 = CopyDataset(tmp1);
+        DestroyDataset(&tmp1);
+        tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
+        for(z = 0; z < tmp1->size; z++){
+            for(j = 0; j < tmp1->nfeatures; j++){
+                aux = 0.0;
+                for(i = 0; i < tmp2->nfeatures; i++)
+                    aux+=(gsl_vector_get(tmp2->sample[z].feature, i)*gsl_matrix_get(d->m[id]->W, i, j));
+                aux+=gsl_vector_get(d->m[id]->b, j);
+                
+                gsl_vector_set(tmp1->sample[z].feature, j, SigmoidLogistic(aux));
+            }
+        }
+        DestroyDataset(&tmp2);
+        fprintf(stderr,"\nOK");
+    }
+    DestroyDataset(&tmp1);
+    
+    error = BernoulliDBNReconstruction(D, d);
+    
+    return error;
+}
 /**************************/
 
 /* Bernoulli DBN reconstruction */
