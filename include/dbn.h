@@ -21,7 +21,8 @@ void DBNSaveWeights(DBN *d, char *path); /* It writes the weight matrix as PGM i
 void InitializeDBN(DBN *d); /* It initializes an DBN */
 
 /* Bernoulli DBN training */
-double BernoulliDBNTrainingbyContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size); /* It trains an DBN for image reconstruction */
+double BernoulliDBNTrainingbyContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a DBN for image reconstruction using Contrastive Divergence */
+double BernoulliDBNTrainingbyPersistentContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a DBN for image reconstruction using Persistent Contrastive Divergence */
 
 /* Bernoulli DBN reconstruction */
 double BernoulliDBNReconstruction(Dataset *D, DBN *d); /* It reconstructs an input dataset given a trained DBN */
