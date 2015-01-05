@@ -68,6 +68,22 @@ RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_la
     return m;
 }
 
+/* It allocates a DRBM
+Parameters: [n_visible_units, n_hidden_units, n_labels, sigma]
+n_visible_units: number of visible units
+n_hidden_layen_hidden_unitsrs: number of hidden units
+n_labels: number of labels
+sigma: array with the variance values associated to each visible unit */
+RBM *CreateDRBM(int n_visible_units, int n_hidden_units, int n_labels, gsl_vector *sigma){
+    RBM *r = NULL;
+    
+    r = CreateRBM(n_visible_units, n_hidden_units, n_labels);
+    r->sigma = gsl_vector_calloc(sigma->size);
+    gsl_vector_memcpy(r->sigma, sigma);
+    
+    return r;
+}
+
 /* It deallocates an RBM */
 void DestroyRBM(RBM **m){
     int i;
@@ -83,6 +99,14 @@ void DestroyRBM(RBM **m){
         free(*m);
         *m = NULL;
     }
+}
+
+/* It deallocates a DRBM */
+void DestroyDRBM(RBM **m){
+    if(*m){
+        DestroyRBM(m);
+        gsl_vector_free((*m)->sigma);
+    }else fprintf(stderr,"\nThere is no RBM allocated @DestroyDRBM.\n");
 }
 /**************************/
 

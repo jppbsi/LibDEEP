@@ -21,11 +21,14 @@ typedef struct _RBM{
     gsl_vector *a;//visible neurons' bias
     gsl_vector *b;//hidden neurons' bias
     gsl_vector *c;//label neurons' bias
+    gsl_vector *sigma; //variance associated to each visible neuron for Gaussian visible units
 }RBM;
 
 /* Allocation and deallocation */
 RBM *CreateRBM(int n_visible_layers, int n_hidden_layers, int n_labels); // It allocates an RBM
+RBM *CreateDRBM(int n_visible_units, int n_hidden_units, int n_labels, gsl_vector *sigma); // It allocates a DRBM
 void DestroyRBM(RBM **m); // It deallocates an RBM
+void DestroyDRBM(RBM **m); // It deallocates a DRBM
 
 /* RBM initialization */
 void InitializeBias4VisibleUnits(RBM *m, Dataset *D); // It initializes the bias of visible units according to Section 8.1
