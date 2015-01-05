@@ -345,12 +345,11 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    srandom(time(NULL));
     
-    gsl_rng_env_setup();
+    srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, rand());
+    gsl_rng_set(r, random_seed());;
     
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
@@ -540,12 +539,13 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
     gsl_matrix *_posW = NULL, *_negW = NULL, *posW = NULL, *negW = NULL, *_posU = NULL, *_negU = NULL, *posU = NULL, *negU = NULL;
     gsl_matrix *tmpW = NULL, *tmpU = NULL, *delta_W = NULL, *delta_U = NULL;
     double sample, error, errorsum, train_error;
-    const gsl_rng_type *T;
-    gsl_rng *r;
+    const gsl_rng_type *T = NULL;
+    gsl_rng *r = NULL;
     
-    gsl_rng_env_setup();
+    srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
+    gsl_rng_set(r, random_seed());
     
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
@@ -750,7 +750,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
     gsl_vector_free(delta_b);
     gsl_vector_free(delta_c);
     
-    return error;
+    return train_error;
 }
 
 /* It trains a Discriminative Gaussian-Bernoulli RBM by Constrative Divergence for pattern classification
@@ -767,12 +767,13 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
     gsl_matrix *_posW = NULL, *_negW = NULL, *posW = NULL, *negW = NULL, *_posU = NULL, *_negU = NULL, *posU = NULL, *negU = NULL;
     gsl_matrix *tmpW = NULL, *tmpU = NULL, *delta_W = NULL, *delta_U = NULL;
     double sample, error, errorsum, train_error;
-    const gsl_rng_type *T;
-    gsl_rng *r;
+    const gsl_rng_type *T = NULL;
+    gsl_rng *r = NULL;
     
-    gsl_rng_env_setup();
+    srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
+    gsl_rng_set(r, random_seed());
     
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
@@ -952,8 +953,8 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_vector_add(m->c, delta_c); // c = c + delta_c
         }
         
-        fprintf(stderr,"MSE classification error: %lf OK", errorsum/n_batches);
         train_error = errorsum/n_batches;
+        fprintf(stderr,"MSE classification error: %lf OK", train_error);        
     }
     
     gsl_rng_free(r);
@@ -979,7 +980,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
     gsl_vector_free(delta_b);
     gsl_vector_free(delta_c);
     
-    return error;
+    return train_error;
 }
 
 /**************************/
