@@ -1060,7 +1060,8 @@ void _DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
 }
 
 
-/* It classifies an input dataset given a trained RBM and it outputs the classification error */
+/* It classifies an input dataset given a trained RBM and it outputs the classification error
+This implementtation is based on Equation 2 of paper "Learning Algorithms for the Classification Restricted Boltzmann Machine" */
 double DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
     int i, y;
     double maxprob, prob, max, Acc;
