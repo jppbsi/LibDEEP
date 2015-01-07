@@ -68,7 +68,7 @@ Dataset *CopyDataset(Dataset *d){
             return 0;
     }
     return 1;
-}
+}*/
 
 /* It gets the following information about the images in the input dataset: numer of images, 
  width and height (it assumes all images have the same dimensions). It outputs the following information:
@@ -107,7 +107,7 @@ Dataset *CopyDataset(Dataset *d){
     cvReleaseImage(&img);
     
     return output;
-}
+}*/
 
 /* Position means the segment position in the strings. The first segment is 0. */
 char *SplitString(char *string, char * separator, int position){

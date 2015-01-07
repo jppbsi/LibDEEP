@@ -48,6 +48,7 @@ void SaveWeights(RBM *m, char *path, int height, int width); // It writes the we
 
 /* Bernoulli-Bernoulli RBM training */
 double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Bernoulli RBM by Constrative Divergence for image reconstruction (binary images)
+double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_PCD_iterations, int batch_size); // It trains a Bernoulli RBM by Persistent Constrative Divergence
 double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int batch_size); // It trains a Discriminative Bernoulli RBM by Constrative Divergence for pattern classification
 
 /*Gaussian-Bernoulli RBM training */
