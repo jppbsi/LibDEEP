@@ -542,17 +542,17 @@ batch_size: mini-batch size */
 double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_PCD_iterations, int batch_size){
     int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr;
     double error, prob, sample, errorsum;
-    const gsl_rng_type * T;
+    const gsl_rng_type *T = NULL;
     gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL;
     gsl_vector *v1 = NULL, *vn = NULL, *tmpa = NULL, *tmpb = NULL;
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL, *last_chain_element = NULL;
-    gsl_rng *r;
+    gsl_rng *r = NULL;
     
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
-    gsl_rng_set(r, random_seed());;
+    gsl_rng_set(r, random_seed());
     
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
@@ -616,7 +616,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     
                         // It computes the P(h=1|v1), i.e., it computes h1
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
-                        #pragma omp parallel
+                        //#pragma omp parallel
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
                             if(gsl_vector_get(tmp_probh1, j) >= sample) gsl_vector_set(m->h, j, 1.0);
@@ -630,7 +630,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     
                         // It computes the P(v2=1|h1), i.e., it computes v2
                         tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
-                        #pragma omp parallel
+                        //#pragma omp parallel
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
@@ -639,7 +639,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                 
                         // It computes the P(h2=1|v2), i.e., it computes h2 (hn)
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
-                        #pragma omp parallel
+                        //#pragma omp parallel
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
                             if(gsl_vector_get(tmp_probhn, j) >= sample) gsl_vector_set(m->h, j, 1.0);
@@ -1202,9 +1202,6 @@ double BernoulliRBMReconstruction(Dataset *D, RBM *m){
     int i;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
     
-    h_prime = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    v_prime = gsl_vector_calloc(m->n_visible_layer_neurons);
-
     for(i = 0; i < D->size; i++){
         
         h_prime = getProbabilityTurningOnHiddenUnit(m, D->sample[i].feature);
