@@ -14,6 +14,7 @@
 typedef struct _RBM{
     int n_visible_layer_neurons, n_hidden_layer_neurons, n_labels;
     double eta, lambda, alpha;
+    double eta_min, eta_max; //mininum and maximum values of the lerning rate
     gsl_vector *v; //visible layer neurons
     gsl_vector *h; //hidden layer neurons
     gsl_matrix *W; //weight matrix
