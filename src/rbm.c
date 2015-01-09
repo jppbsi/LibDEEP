@@ -545,10 +545,10 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr;
     double error, prob, sample, errorsum;
     const gsl_rng_type *T = NULL;
-    gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL;
+    gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL, *last_chain_element = NULL;
     gsl_vector *v1 = NULL, *vn = NULL, *tmpa = NULL, *tmpb = NULL;
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
-    gsl_vector *tmp_probvn = NULL, *last_chain_element = NULL;
+    gsl_vector *tmp_probvn = NULL, *aux = NULL;
     gsl_rng *r = NULL;
     
     srand(time(NULL));
@@ -556,9 +556,10 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed());
     
+    aux = gsl_vector_calloc(m->n_visible_layer_neurons);
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    last_chain_element = gsl_vector_calloc(m->n_visible_layer_neurons);
+    last_chain_element = gsl_matrix_calloc(D->size, m->n_visible_layer_neurons);
     
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
@@ -578,13 +579,15 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
     
+    for(i = 0; i < D->size; i++)
+	gsl_matrix_set_row(last_chain_element, i, D->sample[i].feature);
+	
     // for each epoch
     for(e= 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
         
         errorsum = 0;
         z = 0;
-	gsl_vector_memcpy(last_chain_element, D->sample[0].feature);
         
         // for each batch
         for(n = 1; n <= n_batches; n++){
@@ -608,7 +611,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
                 
                     // It sets v1 with the last chain element
-                    setVisibleLayer(m, last_chain_element);
+		    gsl_matrix_get_row(m->v, last_chain_element, z);
                 
                     // It accumulates v1
                     gsl_vector_add(v1, m->v);
@@ -659,10 +662,15 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                 
                     // It accumulates vn
                     gsl_vector_add(vn, m->v);
+		    
+		    gsl_matrix_get_row(aux, last_chain_element, z);
+		    
+		    // it saves the last chain elements of the current training sample
+		    gsl_matrix_set_row(last_chain_element, z, m->v);
                 
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
-                            gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
+			    gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(aux, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
@@ -670,7 +678,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
                 
-                    error+=getReconstructionError(D->sample[z].feature, probvn);
+                    error+=getReconstructionError(aux, probvn);
                 
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
@@ -712,12 +720,13 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_vector_add(m->b, tmpb); // it performs b = b + b'
             /********************************/
 	    
-	    gsl_vector_memcpy(last_chain_element, vn);
         }
         
         error = errorsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf", error);
         
+	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
+	
         if(error < 0.0001) e = n_epochs+1;
     }
 
@@ -729,7 +738,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    gsl_vector_free(last_chain_element);
+    gsl_vector_free(aux);
     
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
@@ -737,6 +746,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
+    gsl_matrix_free(last_chain_element);
     
     return error;
 }
