@@ -509,6 +509,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
         
         error = errorsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf", error);
+	fprintf(stdout,"%d %lf\n", e, error);
 	
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
         
@@ -724,7 +725,8 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
         
         error = errorsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf", error);
-        
+        fprintf(stdout,"%d %lf\n", e, error);
+	
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
 	
         if(error < 0.0001) e = n_epochs+1;
