@@ -753,6 +753,237 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     return error;
 }
 
+/* It trains a Bernoulli RBM by Fast Persistent Constrative Divergence
+Parameters: [D, m, n_epochs, n_CD_iterations, batch_size]
+D: dataset
+m: initialized RBM
+n_epochs: number of epochs for RBM training
+n_PCD_iterations: number of iterations of Persistent Contrasttive Divergence
+batch_size: mini-batch size
+This implementation followed the paper "Using Fast Weights to Improve Persistent Contrastive Divergence" */
+double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int batch_size){
+    int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr;
+    double error, prob, sample, errorsum, eta_fast, ratio;
+    const gsl_rng_type *T = NULL;
+    gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL, *last_chain_element = NULL;
+    gsl_matrix *fast_W = NULL, *gradient_W = NULL;
+    gsl_vector *v1 = NULL, *vn = NULL, *tmpa = NULL, *tmpb = NULL, *v_minus = NULL, *gradient_a = NULL, *gradient_b = NULL;
+    gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL;
+    gsl_vector *tmp_probvn = NULL, *aux = NULL, *fast_a = NULL, *fast_b = NULL;
+    gsl_rng *r = NULL;
+    
+    srand(time(NULL));
+    T = gsl_rng_default;
+    r = gsl_rng_alloc(T);
+    gsl_rng_set(r, random_seed());
+    
+    aux = gsl_vector_calloc(m->n_visible_layer_neurons);
+    v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
+    vn = gsl_vector_calloc(m->n_visible_layer_neurons);
+    last_chain_element = gsl_matrix_calloc(D->size, m->n_visible_layer_neurons);
+    
+    tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
+    tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    gsl_vector_set_zero(tmpa);
+    gsl_vector_set_zero(tmpb);
+    
+    ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    
+    CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    
+    tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    gsl_matrix_set_zero(tmpW);
+    gsl_matrix_set_zero(auxW);
+    
+    // fast weights used by FPCD
+    fast_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    fast_a = gsl_vector_calloc(m->n_visible_layer_neurons);
+    fast_b = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    eta_fast = m->eta;
+    
+    v_minus = gsl_vector_calloc(m->n_visible_layer_neurons);
+    gradient_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
+    gradient_a = gsl_vector_calloc(m->n_visible_layer_neurons);
+    gradient_b = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    ratio = 19.0/20.0;
+    
+    for(i = 0; i < D->size; i++)
+	gsl_matrix_set_row(last_chain_element, i, D->sample[i].feature);
+	
+    // for each epoch
+    for(e= 1; e <= n_epochs; e++){
+        fprintf(stderr,"\nRunning epoch %d ... ", e);
+        
+        errorsum = 0;
+        z = 0;
+        
+        // for each batch
+        for(n = 1; n <= n_batches; n++){
+            
+            ctr = 0;
+            error = 0;
+            gsl_matrix_set_zero(CDpos);
+            gsl_matrix_set_zero(CDneg);
+            gsl_vector_set_zero(v1);
+            gsl_vector_set_zero(vn);
+            gsl_vector_set_zero(ctr_probh1);
+            gsl_vector_set_zero(ctr_probhn);
+            
+            for(t = 0; t < batch_size; t++){
+    
+                if(z < D->size){
+            
+                    ctr++;
+                    probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
+                    probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
+                    probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
+                
+                    // It sets v1 with the last chain element
+		    gsl_matrix_get_row(m->v, last_chain_element, z);
+                
+                    // It accumulates v1
+                    gsl_vector_add(v1, m->v);
+                    
+		    // step #2 of algorithm at Section 6
+		    probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
+                    for(j = 0; j < m->n_hidden_layer_neurons; j++){
+                        sample = gsl_rng_uniform(r);
+                        if(gsl_vector_get(probh1, j) >= sample) gsl_vector_set(m->h, j, 1.0);
+                        else gsl_vector_set(m->h, j, 0.0);
+                    }
+                    gsl_vector_add(ctr_probh1, probh1);
+		    
+                    // step #3 of algorithm at Section 6
+		    probhn = getProbabilityTurningOnHiddenUnit4FPCD(m, v_minus, fast_W, fast_b);
+		    for(j = 0; j < m->n_hidden_layer_neurons; j++){
+                        sample = gsl_rng_uniform(r);
+                        if(gsl_vector_get(probhn, j) >= sample) gsl_vector_set(m->h, j, 1.0);
+                        else gsl_vector_set(m->h, j, 0.0);
+                    }
+		    gsl_vector_add(ctr_probhn, probhn);
+			
+		    // step #4 of algorithm at Section 6	
+                    probvn = getProbabilityTurningOnVisibleUnit4FPCD(m, m->h, fast_W, fast_a);
+		    for(j = 0; j < m->n_visible_layer_neurons; j++){
+                        sample = gsl_rng_uniform(r);
+                        if(gsl_vector_get(probvn, j) >= sample) gsl_vector_set(v_minus, j, 1.0);
+                        else gsl_vector_set(v_minus, j, 0.0);
+                    }
+                
+                    // It accumulates vn
+                    gsl_vector_add(vn, v_minus);
+		    
+		    gsl_matrix_get_row(aux, last_chain_element, z);
+		    
+		    // it saves the last chain elements of the current training sample
+		    gsl_matrix_set_row(last_chain_element, z, m->v);
+                
+                    for(i = 0; i < tmpCDpos->size1; i++){
+                        for(j = 0; j < tmpCDpos->size2; j++){
+			    gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(aux, i)*gsl_vector_get(probh1, j));
+                            gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(v_minus, i)*gsl_vector_get(probhn, j));
+                        }
+                    }
+                
+                    gsl_matrix_add(CDpos, tmpCDpos);
+                    gsl_matrix_add(CDneg, tmpCDneg);
+                
+                    error+=getReconstructionError(aux, probvn);
+                
+                    gsl_vector_free(probh1);
+                    gsl_vector_free(probhn);
+                    gsl_vector_free(probvn);
+                    
+                    z++;
+                }
+            }
+        
+            errorsum = errorsum + error/ctr;
+            
+            /* it updates RBM regular parameters ****/
+            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
+	    gsl_matrix_memcpy(gradient_W, CDpos); // saving the gradient for fast weights updating
+            gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
+            gsl_matrix_scale(tmpW, m->alpha); // it performs W' = alpha*W' (momentum)
+            gsl_matrix_memcpy(auxW, m->W); // it performs auxW = W
+            gsl_matrix_scale(auxW, -m->lambda); // it performs auxW = -lambda*W (weight decay)
+            gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
+            gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
+            gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
+            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
+            
+            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
+            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_sub(v1, vn); // it performs v1-vn
+	    gsl_vector_memcpy(gradient_a, v1); //saving the gradient for fast weights updating
+            gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
+            gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
+            gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
+            gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
+    
+            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+	    gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
+	    gsl_vector_memcpy(gradient_b, ctr_probh1); //saving the gradient for fast weights updating
+            gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
+            gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
+            gsl_vector_add(tmpb, ctr_probh1); //it performs b' = alpha*b' + eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
+            gsl_vector_add(m->b, tmpb); // it performs b = b + b'
+            /********************************/
+	    
+	    /* it updates the fast weights according to step #7 of the algorithm at Section 6*/
+	    gsl_matrix_scale(fast_W, ratio);
+	    gsl_vector_scale(fast_a, ratio);
+	    gsl_vector_scale(fast_b, ratio);
+	    gsl_matrix_add(fast_W, gradient_W);
+	    gsl_vector_add(fast_a, gradient_a);
+	    gsl_vector_add(fast_b, gradient_b);
+        }
+        
+        error = errorsum/n_batches;
+        fprintf(stderr,"    -> Reconstruction error: %lf", error);
+        fprintf(stdout,"%d %lf\n", e, error);
+	
+	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
+	
+        if(error < 0.0001) e = n_epochs+1;
+    }
+
+    gsl_rng_free(r);
+    
+    gsl_vector_free(v1);
+    gsl_vector_free(vn);
+    gsl_vector_free(tmpa);
+    gsl_vector_free(tmpb);
+    gsl_vector_free(ctr_probh1);
+    gsl_vector_free(ctr_probhn);
+    gsl_vector_free(aux);
+    gsl_vector_free(fast_a);
+    gsl_vector_free(fast_b);
+    gsl_vector_free(v_minus);
+    gsl_vector_free(gradient_a);
+    gsl_vector_free(gradient_b);
+    
+    gsl_matrix_free(CDpos);
+    gsl_matrix_free(CDneg);
+    gsl_matrix_free(tmpCDneg);
+    gsl_matrix_free(tmpCDpos);
+    gsl_matrix_free(tmpW);
+    gsl_matrix_free(auxW);
+    gsl_matrix_free(last_chain_element);
+    gsl_matrix_free(fast_W);
+    gsl_matrix_free(gradient_W);
+    
+    return error;
+}
+
 // It trains a Discriminative Bernoulli RBM by Constrative Divergence for pattern classification
 double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int batch_size){
     int e, z, j, i, n, n_batches = ceil((float)D->size/batch_size), t, ctr;
@@ -1357,6 +1588,25 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
     return h;
 }
 
+/* It computes the probability of turning on a hidden unit j for FPCD */
+gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD(RBM *m, gsl_vector *v, gsl_matrix *fast_W, gsl_vector *fast_b){
+    int i, j;
+    gsl_vector *h = NULL;
+    double tmp;
+    
+    h = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    for(j = 0; j < m->n_hidden_layer_neurons; j++){
+        tmp = 0.0;
+        for(i = 0; i < m->n_visible_layer_neurons; i++)
+            tmp+=(gsl_vector_get(v, i)*(gsl_matrix_get(m->W, i, j)+gsl_matrix_get(fast_W, i, j)));
+        tmp+=(gsl_vector_get(m->b, j)+gsl_vector_get(fast_b, j));
+        tmp = SigmoidLogistic(tmp);
+        gsl_vector_set(h, j, tmp);
+    }
+    
+    return h;
+}
+
 /* It computes the probability of turning on a visible unit j, as described by Equation 11 */
 gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h){
     int i,j;
@@ -1370,6 +1620,26 @@ gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h){
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
             tmp+=(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i));
         tmp+=gsl_vector_get(m->a, j);
+        tmp = SigmoidLogistic(tmp);
+        gsl_vector_set(v, j, tmp);
+    }
+    
+    return v;
+}
+
+/* It computes the probability of turning on a visible unit j for FPCD */
+gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_matrix *fast_W, gsl_vector *fast_a){
+    int i,j;
+    gsl_vector *v = NULL;
+    double tmp;
+    
+    v = gsl_vector_calloc(m->n_visible_layer_neurons);
+    
+    for(j = 0; j < m->n_visible_layer_neurons; j++){
+        tmp = 0.0;
+        for(i = 0; i < m->n_hidden_layer_neurons; i++)
+            tmp+=(gsl_vector_get(h, i)*(gsl_matrix_get(m->W, j, i)+gsl_matrix_get(fast_W, j, i)));
+        tmp+=(gsl_vector_get(m->a, j)+gsl_vector_get(fast_a, j));
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
