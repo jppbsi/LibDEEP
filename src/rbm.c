@@ -540,7 +540,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
 
 double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size){
     int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr;
-    double error, prob, sample, errorsum;
+    double error, prob, sample, errorsum, pl, plsum;
     const gsl_rng_type * T;
     gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL, *last_probhn = NULL;
     gsl_vector *v1 = NULL, *vn = NULL, *tmpa = NULL, *tmpb = NULL, *aux = NULL;
@@ -581,14 +581,14 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
         
-        errorsum = 0;
+        errorsum = plsum = 0;
         z = 0;
         
         // for each batch
         for(n = 1; n <= n_batches; n++){
             
             ctr = 0;
-            error = 0;
+            error = pl = 0;
             gsl_matrix_set_zero(CDpos);
             gsl_matrix_set_zero(CDneg);
             gsl_vector_set_zero(v1);
@@ -670,7 +670,8 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
                 
-                    error+=getReconstructionError(D->sample[z].feature, probvn);
+                    error+=getReconstructionError(D->sample[z].feature, probvn);pl = plsum/n_batches;
+		    pl+=getPseudoLikelihood(m, m->v);		    
                 
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
@@ -681,6 +682,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             }
         
             errorsum = errorsum + error/ctr;
+	    plsum = plsum + pl/ctr;
         
             /* it updates RBM parameters ****/
             gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
@@ -714,8 +716,9 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
         }
         
         error = errorsum/n_batches;
-        fprintf(stderr,"    -> Reconstruction error: %lf", error);
-	fprintf(stdout,"%d %lf\n", e, error);
+        pl = plsum/n_batches;
+        fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
+	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
 	
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
         
