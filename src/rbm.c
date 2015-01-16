@@ -192,23 +192,24 @@ void InitializeWeights(RBM *m){
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
     
-    if(m){
-    
+    if(m){    
 	srand(time(NULL));
 	T = gsl_rng_default;
 	r = gsl_rng_alloc(T);
 	gsl_rng_set(r, random_seed());
     
-        for(i = 0; i < m->n_visible_layer_neurons; i++)
-            for(j = 0; j < m->n_hidden_layer_neurons; j++)
-                gsl_matrix_set(m->W, i, j, gsl_ran_gaussian(r, 0.01));
+        for(i = 0; i < m->n_visible_layer_neurons; i++){
+            for(j = 0; j < m->n_hidden_layer_neurons; j++){
+		do{   
+		    gsl_matrix_set(m->W, i, j, gsl_ran_gaussian(r, 0.01));
+		}while(isnan(gsl_matrix_get(m->W, i, j)));
+            }
+	}
         gsl_rng_free(r);
-        
     }else{
         fprintf(stderr,"\nThere is not an RBM allocated @InitializeBias4HiddenUnits\n");
         exit(-1);
     }
-
 }
 
 /* It initializes the label weight matrix */
@@ -628,7 +629,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                         gsl_vector_free(tmp_probh1);
                     
                         // It computes the P(v2=1|h1), i.e., it computes v2
-                        if ((e == 1) && (t==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
+                        if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
                         else{
 			    gsl_matrix_get_row(aux, last_probhn, t); 
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit(m, aux);
@@ -671,7 +672,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     gsl_matrix_add(CDneg, tmpCDneg);
                 
                     error+=getReconstructionError(D->sample[z].feature, probvn);
-		    pl+=getPseudoLikelihood(m, m->v);		    
+		    pl+=getPseudoLikelihood(m, m->v);
                 
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
@@ -1643,6 +1644,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h){
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
             tmp+=(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i));
         tmp+=gsl_vector_get(m->a, j);
+	
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
