@@ -670,7 +670,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
                 
-                    error+=getReconstructionError(D->sample[z].feature, probvn);pl = plsum/n_batches;
+                    error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);		    
                 
                     gsl_vector_free(probh1);
