@@ -743,7 +743,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-    
+        
     return error;
 }
 
