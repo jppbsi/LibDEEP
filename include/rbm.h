@@ -50,7 +50,7 @@ void SaveWeights(RBM *m, char *path, int height, int width); // It writes the we
 /* Bernoulli-Bernoulli RBM training */
 double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Bernoulli RBM by Constrative Divergence for image reconstruction (binary images)
 double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_PCD_iterations, int batch_size); // It trains a Bernoulli RBM by Persistent Constrative Divergence
-double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int batch_size); // It trains a Bernoulli RBM by Fast Persistent Constrative Divergence
+double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_gibbs_sampling, int batch_size); // It trains a Bernoulli RBM by Fast Persistent Constrative Divergence
 double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int batch_size); // It trains a Discriminative Bernoulli RBM by Constrative Divergence for pattern classification
 
 /*Gaussian-Bernoulli RBM training */
@@ -67,14 +67,18 @@ double DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m); /* It class
 double FreeEnergy(RBM *m, gsl_vector *v); /* It computes the pseudo-likelihood of a sample x in an RBM, and it assumes x is a binary vector */
 double FreeEnergy4DRBM(RBM *m, int y, gsl_vector *x); /* It computes the free energy of a given label and a sample */
 gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v); // It computes the probability of turning on a hidden unit j, as described by Equation 10
-gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD(RBM *m, gsl_vector *v, gsl_matrix *fast_W, gsl_vector *fast_b); // It computes the probability of turning on a hidden unit j for FPCD
+gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD(RBM *m, gsl_vector *v, gsl_matrix *fast_W); // It computes the probability of turning on a hidden unit j for FPCD
 gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h); // It computes the probability of turning on a visible unit j, as described by Equation 11
-gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_matrix *fast_W, gsl_vector *fast_a); // It computes the probability of turning on a visible unit j for FPCD
+gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_matrix *fast_W); // It computes the probability of turning on a visible unit j for FPCD
 gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *y); //It computes the probability of turning on a hidden unit j considering Discriminative RBMs and Bernoulli visible units
 gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit(RBM *m, gsl_vector *y); //It computes the probability of turning on a hidden unit j considering Discriminative RBMs and Gaussian visible units
 gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit(RBM *m, gsl_vector *h); //It computes the probability of turning on a visible unit i considering Discriminative RBMs and Gaussian visible units
 gsl_vector *getDiscriminativeProbabilityLabelUnit(RBM *m); /* It computes the probability of label unit (y) given the hidden (h) one, i.e., P(y|h) */
 double getReconstructionError(gsl_vector *input, gsl_vector *output); // It computes the minimum square error among input and output
 double getPseudoLikelihood(RBM *m, gsl_vector *x); //it computes the pseudo-likelihood of a sample x in an RBM
+
+void FASTgetProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v, gsl_vector *prob_h);
+void FASTgetProbabilityTurningOnHiddenUnit4FPCD(RBM *m, gsl_vector *v, gsl_matrix *fast_W, gsl_vector *fast_b, gsl_vector *prob_h);
+void FASTgetProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_matrix *fast_W, gsl_vector *fast_a, gsl_vector *prob_v);
 
 #endif
