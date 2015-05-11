@@ -88,7 +88,7 @@ double Logistic_RegressionPartialDerivative(gsl_matrix *X, gsl_vector *w, gsl_ve
         partial_derivative_value = 0.0;
         for(i = 0; i < X->size1; i++){ // it runs over all data samples
             x = gsl_matrix_row(X, i); // it picks sample x_i            
-            partial_derivative_value+=((h(&x.vector, w)-gsl_vector_get(Y, i))*gsl_vector_get(&x.vector, j)); //tmp = sum(h(x_i)-y_i)x_i^j
+            partial_derivative_value+=((h_logistic(&x.vector, w)-gsl_vector_get(Y, i))*gsl_vector_get(&x.vector, j)); //tmp = sum(h(x_i)-y_i)x_i^j
         }
         return partial_derivative_value;
         
