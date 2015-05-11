@@ -20,6 +20,7 @@ $(OBJ)/rbm.o \
 $(OBJ)/auxiliary.o \
 $(OBJ)/dbn.o \
 $(OBJ)/regression.o \
+$(OBJ)/logistic.o \
 
 	ar csr $(LIB)/libDeep.a \
 $(OBJ)/deep.o \
@@ -28,6 +29,7 @@ $(OBJ)/rbm.o \
 $(OBJ)/auxiliary.o \
 $(OBJ)/dbn.o \
 $(OBJ)/regression.o \
+$(OBJ)/logistic.o \
 
 $(OBJ)/deep.o: $(SRC)/deep.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/deep.c \
@@ -52,6 +54,10 @@ $(OBJ)/dbn.o: $(SRC)/dbn.c
 $(OBJ)/regression.o: $(SRC)/regression.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/regression.c \
 	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/regression.o -fopenmp `pkg-config --cflags --libs gsl`
+
+$(OBJ)/logistic.o: $(SRC)/logistic.c
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/logistic.c \
+	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/logistic.o -fopenmp `pkg-config --cflags --libs gsl`
 
 clean:
 	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o
