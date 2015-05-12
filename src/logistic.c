@@ -20,10 +20,8 @@ double Logistic_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
         for(i = 0; i < X->size1; i++){ // it runs over all data samples
             row = gsl_matrix_row(X, i);
 			h_w = h_logistic(&row.vector, w);
-			//fprintf(stderr,"\nh_w: %lf with class %lf -> %lf", h_w, gsl_vector_get(Y, i), gsl_vector_get(Y, i)*log(h_w)+((1-gsl_vector_get(Y, i))*log(1-h_w)));
             error+=(gsl_vector_get(Y, i)*log(h_w)+((1-gsl_vector_get(Y, i))*log(1-h_w))); //Equation 23
         }
-		fprintf(stderr, "\nerror: %lf", -error/X->size1);
         return -error/X->size1;
         
     }else{
