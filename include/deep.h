@@ -28,8 +28,6 @@ extern "C" {
 /* LibOPF library */
 #include "OPF.h"
 
-typedef void (*mac_prtFun)(gsl_matrix *, gsl_vector *, ...);
-    
 /* libDeep libraries */
 #include "auxiliary.h"
 #include "rbm.h"
