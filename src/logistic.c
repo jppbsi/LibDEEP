@@ -78,3 +78,23 @@ double h_logistic(gsl_vector *x, gsl_vector *w){
         return -1;
     }
 }
+
+/* It executes the Logistic Regression for classification purposes
+Parameters: [X, w]
+X: test set
+w: parameters of the model
+---
+Output: predicted labels */
+gsl_vector *Logistic_Regression4Classification(gsl_matrix *X, gsl_vector *w){
+	int i;
+	gsl_vector *predict = NULL;
+	gsl_vector_view x;
+	
+	predict = gsl_vector_calloc(X->size1);
+	for(i = 0; i < X->size1; i++){ //for each test sample
+		x = gsl_matrix_row(X, i); // it picks sample x_i   
+		gsl_vector_set(predict, i, round(h_logistic(&x.vector, w)));
+	}
+	
+	return predict;
+}
