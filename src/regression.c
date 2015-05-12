@@ -11,7 +11,7 @@ Optimization_Func: function used to find the parameters that best fits the linea
 remaining parameters of each specific optimization function
 ---
 Output: learned set of parameters w */
-gsl_vector *LinearRegression_Fitting(gsl_matrix *X, gsl_vector *Y, int FUNCTION_ID, ...){
+gsl_vector *LinearRegression_Fitting(gsl_matrix *X, gsl_vector *Y, mac_prtFun Function, int FUNCTION_ID, ...){
     gsl_vector *w = NULL;
     va_list arg;
     const gsl_rng_type *T = NULL;
@@ -33,7 +33,7 @@ gsl_vector *LinearRegression_Fitting(gsl_matrix *X, gsl_vector *Y, int FUNCTION_
     switch (FUNCTION_ID){
         case 5: // Gradient Descent
             alpha = va_arg(arg, double);
-            GradientDescent(X, Y, alpha, 7, w); // 7 is the Linear Regression ID at LibOPT
+            Function(X, Y, alpha, 7, w); // 7 is the Linear Regression ID at LibOPT
         break;
     }
     

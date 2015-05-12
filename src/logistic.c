@@ -11,7 +11,7 @@ Optimization_Func: function used to find the parameters that best fits the linea
 remaining parameters of each specific optimization function
 ---
 Output: learned set of parameters w */
-gsl_vector *LogisticRegression_Fitting(gsl_matrix *X, gsl_vector *Y, int FUNCTION_ID, ...){
+gsl_vector *LogisticRegression_Fitting(gsl_matrix *X, gsl_vector *Y, mac_prtFun Function, int FUNCTION_ID, ...){
     gsl_vector *w = NULL;
     va_list arg;
     const gsl_rng_type *T = NULL;
@@ -33,7 +33,7 @@ gsl_vector *LogisticRegression_Fitting(gsl_matrix *X, gsl_vector *Y, int FUNCTIO
     switch (FUNCTION_ID){
         case 5: // Gradient Descent
             alpha = va_arg(arg, double);
-            GradientDescent(X, Y, alpha, 11, w); // 11 is the Logistic Regression ID at LibOPT 
+            Function(X, Y, alpha, 11, w); // 11 is the Logistic Regression ID at LibOPT 
         break;
     }
     
@@ -49,9 +49,9 @@ X: input data
 w: learned parameters of the model
 Y: target values
 ---
-Output: mean squared error */
+Output: error */
 double Logistic_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
-    double error, tmp;
+    double error, tmp, h_w;
     gsl_vector_view row;
     int i;
     
@@ -60,8 +60,11 @@ double Logistic_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
         error = 0.0;
         for(i = 0; i < X->size1; i++){ // it runs over all data samples
             row = gsl_matrix_row(X, i);
-            error+=(gsl_vector_get(Y, i)*log(h_logistic(&row.vector, w))+(1-gsl_vector_get(Y, i))*log(1-h_logistic(&row.vector, w))); //Equation 23
+			h_w = h_logistic(&row.vector, w);
+			//fprintf(stderr,"\nh_w: %lf with class %lf -> %lf", h_w, gsl_vector_get(Y, i), gsl_vector_get(Y, i)*log(h_w)+((1-gsl_vector_get(Y, i))*log(1-h_w)));
+            error+=(gsl_vector_get(Y, i)*log(h_w)+((1-gsl_vector_get(Y, i))*log(1-h_w))); //Equation 23
         }
+		fprintf(stderr, "\nerror: %lf", -error/X->size1);
         return -error/X->size1;
         
     }else{

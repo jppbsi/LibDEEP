@@ -36,6 +36,7 @@ typedef void (*mac_prtFun)(gsl_matrix *, gsl_vector *, ...);
 #include "math_functions.h"
 #include "dbn.h"
 #include "regression.h"
+#include "logistic.h"
 
 #ifdef __cplusplus
 }
