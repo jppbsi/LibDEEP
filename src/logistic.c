@@ -20,7 +20,7 @@ double Logistic_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
         for(i = 0; i < X->size1; i++){ // it runs over all data samples
             row = gsl_matrix_row(X, i);
 			h_w = h_logistic(&row.vector, w);
-            error+=(gsl_vector_get(Y, i)*log(h_w)+((1-gsl_vector_get(Y, i))*log(1-h_w))); //Equation 23
+            error+=(gsl_vector_get(Y, i)*log(h_w+0.000001)+((1-gsl_vector_get(Y, i))*log(1-h_w+0.000001))); //Equation 23
         }
         return -error/X->size1;
         
