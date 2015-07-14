@@ -33,6 +33,7 @@ typedef struct _Dataset{
 Dataset *CreateDataset(int size, int nfeatures); /* It creates a dataset */
 void DestroyDataset(Dataset **D); /* It destroys a dataset */
 Dataset *CopyDataset(Dataset *d); /* It copies a given dataset */
+Dataset *ConcatenateDataset(Dataset *d1,Dataset *d2);/* It concatenates 2 subsets of a dataSet */
 /********************/
 
 /* Image classification functions */
