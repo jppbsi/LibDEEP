@@ -54,6 +54,32 @@ Dataset *CopyDataset(Dataset *d){
     
     return cpy;
 }
+
+/* It concatenates 2 subsets of a dataSet */
+Dataset *ConcatenateDataset(Dataset *d1,Dataset *d2){
+    Dataset *cpy = NULL;
+    int i,j;
+    
+    if(d1 && d2){
+    
+        cpy = CreateDataset(d1->size + d2->size, d1->nfeatures);
+        cpy->nlabels = d1->nlabels;
+    
+        for(i = 0; i < d1->size; i++){
+            gsl_vector_memcpy(cpy->sample[i].feature, d1->sample[i].feature);
+            cpy->sample[i].label = d1->sample[i].label;
+        }
+		fprintf(stderr, "\ni = %d",i);
+
+        for(j = d1->size; j < d1->size+d2->size; j++){
+            gsl_vector_memcpy(cpy->sample[j].feature, d2->sample[j-i-1].feature);
+            cpy->sample[j].label = d2->sample[j-i-1].label;
+        }
+    }else fprintf(stderr, "\nThere is no dataset allocated @CopyDataset\n");
+    
+    return cpy;
+}
+
 /**********************************************/
 
 /* Image classification functions */
