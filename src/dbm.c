@@ -110,13 +110,10 @@ double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, in
 		//Intermediate hiden layers
 		}else{
         	error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size);
-			for(i=0;i<d->m[id]->n_visible_layer_neurons;i++){
-				for(j= 0;j<d->m[id]->n_hidden_layer_neurons;j++){
-					//halves W
-					gsl_matrix_scale(d->m[id]->W, 0.5);
-					//gsl_matrix_set(r->W,i,j,gsl_matrix_get(r->W, i, j)/2);					
-				}
-			}
+			//halves W
+			gsl_matrix_scale(d->m[id]->W, 0.5);
+			//gsl_matrix_set(r->W,i,j,gsl_matrix_get(r->W, i, j)/2);				
+
 		}
         
         /* it updates the last layer to be the input to the next RBM */
