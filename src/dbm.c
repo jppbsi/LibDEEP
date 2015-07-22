@@ -135,18 +135,126 @@ double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, in
     }
     DestroyDataset(&tmp1);
     
-    error = BernoulliDBMReconstruction(D, d);
+    error = DBMReconstruction(D, d);
     
     return error;
-
-
-	//1 - Make two copies of the visible vector and tie the visible-to-hidden weights W 1 . Fit W 1 of the 1 st layer RBM to data.
-	//2 - Freeze W 1 that defines the 1 st layer of features, and use samples h l from P (h 1 |v, 2W 1 ) (Eq. 22) as the data for training the next layer RBM with weight vector 2W 2 .
-	//3 - Freeze W 2 that defines the 2 nd layer of features and use the samples h 2 from P (h 2 |h 1 , 2W 2 ) as the data for training the 3 rd layer RBM with weight vector 2W 3 .
-	//4 - Proceed recursively for the next layers L − 1.
-	//5 - When learning the top-level RBM, double the number of hidden units and tie the visible-to-hidden weights W L .
-	//6 - Use the weights {W 1 , W 2 , ...., W L } to compose a Deep Boltzmann Machine.
 }
+
+double DBMReconstruction(Dataset *D, DBM *d){
+    gsl_vector *h_prime = NULL, *v_prime = NULL, *aux = NULL;
+    double error = 0.0, beta = 0.5;
+    int id, i;
+
+
+    for(i = 0; i < D->size; i++){        
+        // how should the beta 
+        aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
+        gsl_vector_memcpy(aux, D->sample[i].feature);
+		for(id = 0; id < d->n_layers-1; id++){
+			h_prime = getProbabilityTurningOnHiddenUnitDBM(d->m[id],d->m[id+1], aux, beta);
+            gsl_vector_free(aux);
+            
+            if(id < d->n_layers-1){
+                aux = gsl_vector_calloc(d->m[id+1]->n_visible_layer_neurons);
+                gsl_vector_memcpy(aux, h_prime);
+            }            
+            gsl_vector_free(h_prime);
+		}
+		//last layer		
+		h_prime = getProbabilityTurningOnHiddenUnitDBMLastLayer(d->m[d->n_layers-1], aux, beta);
+		gsl_vector_free(aux);
+		gsl_vector_free(h_prime);
+
+		//first layer
+        aux = gsl_vector_calloc(d->m[0]->n_hidden_layer_neurons);
+        gsl_vector_memcpy(aux, d->m[0]->h);
+        v_prime = getProbabilityTurningOnVisibleUnitDBMFirstLayer(d->m[0], aux,beta);
+        gsl_vector_free(aux);
+
+
+        error+=getReconstructionError(D->sample[i].feature, v_prime);
+        gsl_vector_free(v_prime);
+    }
+
+    error/=D->size;
+    
+    return error;
+}
+
+/* It computes the probability of turning on a hidden unit j, as described by Equation 38 - An Efficient Learning Procedure for Deep
+Boltzmann Machines */
+gsl_vector *getProbabilityTurningOnHiddenUnitDBM(RBM *rbm,RBM *next, gsl_vector *v, double beta){
+    int i, j, m;
+    gsl_vector *h = NULL;
+    double tmp, tmpPre, tmpPos;
+    
+	//ex: h1
+    h = gsl_vector_calloc(rbm->n_hidden_layer_neurons);
+    for(j = 0; j < rbm->n_hidden_layer_neurons; j++){
+        tmp = 0.0;
+		tmpPre = 0.0;
+		tmpPos = 0.0;
+		//ex: v
+        for(i = 0; i < rbm->n_visible_layer_neurons; i++)
+            tmpPre+=(gsl_vector_get(v, i)*gsl_matrix_get(rbm->W, i, j));
+		tmpPre+=gsl_vector_get(rbm->b, j);
+
+		//ex: h2
+        for(m = 0; m < next->n_hidden_layer_neurons; m++)
+            tmpPos+=(gsl_vector_get(rbm->h, j)*gsl_matrix_get(next->W, j, m));
+		//should i consider the bias twice??
+		tmpPos+=gsl_vector_get(rbm->b, j);
+
+		tmp = beta*(tmpPre+tmpPos);		
+        
+		tmp = SigmoidLogistic(tmp);
+        gsl_vector_set(h, j, tmp);
+    }
+    
+    return h;
+}
+
+/* It computes the probability of turning on a hidden unit j, as described by Equation 40 - An Efficient Learning Procedure for Deep
+Boltzmann Machines */
+gsl_vector *getProbabilityTurningOnHiddenUnitDBMLastLayer(RBM *m, gsl_vector *v, double beta){
+    int i, j;
+    gsl_vector *h = NULL;
+    double tmp;
+    
+    h = gsl_vector_calloc(m->n_hidden_layer_neurons);
+    for(j = 0; j < m->n_hidden_layer_neurons; j++){
+        tmp = 0.0;
+        for(i = 0; i < m->n_visible_layer_neurons; i++)
+            tmp+=(beta*(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j)));
+        tmp+=gsl_vector_get(m->b, j);
+		tmp = SigmoidLogistic(tmp);
+        gsl_vector_set(h, j, tmp);
+    }
+    
+    return h;
+}
+
+/* It computes the probability of turning on a visible unit j, as described by Equation 41 */
+gsl_vector *getProbabilityTurningOnVisibleUnitDBMFirstLayer(RBM *m, gsl_vector *h, double beta){
+    int i,j;
+    gsl_vector *v = NULL;
+    double tmp;
+    
+    v = gsl_vector_calloc(m->n_visible_layer_neurons);
+    
+    for(j = 0; j < m->n_visible_layer_neurons; j++){
+        tmp = 0.0;
+        for(i = 0; i < m->n_hidden_layer_neurons; i++)
+            tmp+=(beta*(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i)));
+        tmp+=gsl_vector_get(m->a, j);
+	
+        tmp = SigmoidLogistic(tmp);
+        gsl_vector_set(v, j, tmp);
+    }
+    
+    return v;
+}
+
 
 
 

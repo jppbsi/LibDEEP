@@ -1591,7 +1591,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
         for(i = 0; i < m->n_visible_layer_neurons; i++)
             tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j);
-	tmp = SigmoidLogistic(tmp);
+		tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
     

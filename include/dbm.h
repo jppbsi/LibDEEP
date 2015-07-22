@@ -29,10 +29,14 @@ void PasteDBMParameters(RBM *r, RBM *r2);/*  paste doubled paramns to the origin
 /* DBM pre-training */
 double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, int n_epochs, int n_CD_iterations, int batch_size); /* It sets the initial parameters of DBM */
 
-/* Bernoulli DBM reconstruction */
-double BernoulliDBMReconstruction(Dataset *D, DBM *d); /* It reconstructs an input dataset given a trained DBM */
+double DBMReconstruction(Dataset *D, DBM *d);
 
-/* Backpropagation fine-tuning */
-gsl_vector *ForwardPass(gsl_vector *s, DBM *d); /* It executes the forward pass for a given sample s, and outputs the net's response for that sample */
+/* Probability of turning on intermadiate layers in a DBM */
+gsl_vector *getProbabilityTurningOnHiddenUnitDBM(RBM *rbm,RBM *next, gsl_vector *v, double beta);/* It computes the probability of turning on a hidden unit j, as described by Equation 38 - An Efficient Learning Procedure for Deep Boltzmann Machines */
 
+/* Probability of turning on the Top layers in a DBM */
+gsl_vector *getProbabilityTurningOnHiddenUnitDBMLastLayer(RBM *m, gsl_vector *v, double beta);/* It computes the probability of turning on a hidden unit j, as described by Equation 40 - An Efficient Learning Procedure for Deep Boltzmann Machines */
+
+/* Probability of turning on the First layers in a DBM */
+gsl_vector *getProbabilityTurningOnVisibleUnitDBMFirstLayer(RBM *m, gsl_vector *h, double beta);/* It computes the probability of turning on a visible unit j, as described by Equation 41 */
 #endif
