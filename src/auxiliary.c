@@ -61,24 +61,42 @@ Dataset *ConcatenateDataset(Dataset *d1,Dataset *d2){
     int i,j;
     
     if(d1 && d2){
-    
-        cpy = CreateDataset(d1->size + d2->size, d1->nfeatures);
+
+        cpy = CreateDataset(d1->size, (d1->nfeatures+d2->nfeatures));
         cpy->nlabels = d1->nlabels;
-    
+
         for(i = 0; i < d1->size; i++){
-            gsl_vector_memcpy(cpy->sample[i].feature, d1->sample[i].feature);
+			for(j=0;j<d1->nfeatures;j++){
+            	gsl_vector_set(cpy->sample[i].feature,j, gsl_vector_get(d1->sample[i].feature,j));
+            	gsl_vector_set(cpy->sample[i].feature,(j + d1->nfeatures), gsl_vector_get(d2->sample[i].feature,j));			
+			}
             cpy->sample[i].label = d1->sample[i].label;
         }
-		fprintf(stderr, "\ni = %d",i);
 
-        for(j = d1->size; j < d1->size+d2->size; j++){
-            gsl_vector_memcpy(cpy->sample[j].feature, d2->sample[j-i-1].feature);
-            cpy->sample[j].label = d2->sample[j-i-1].label;
+    }else fprintf(stderr, "\nThere is no dataset allocated @CopyDataset\n");
+    
+    return cpy;
+}
+
+/* It undo concatenation of dataSets */
+Dataset *UndoConcatenateDataset(Dataset *d1){
+    Dataset *cpy = NULL;
+    int i,j;
+    
+    if(d1 ){
+        cpy = CreateDataset(d1->size, (d1->nfeatures/2));
+        cpy->nlabels = d1->nlabels;
+
+        for(i = 0; i < cpy->size; i++){
+			for(j=0;j<cpy->nfeatures;j++)
+            	gsl_vector_set(cpy->sample[i].feature,j, gsl_vector_get(d1->sample[i].feature,j));  	
+            cpy->sample[i].label = d1->sample[i].label;
         }
     }else fprintf(stderr, "\nThere is no dataset allocated @CopyDataset\n");
     
     return cpy;
 }
+
 
 /**********************************************/
 

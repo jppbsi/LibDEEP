@@ -1,9 +1,10 @@
 /* It implements a Deep Belief Network */
 
-#ifndef DBN_H
-#define DBN_H
+#ifndef DBM_H
+#define DBM_H
 
 #include "rbm.h"
+
 
 typedef struct _DBM{
     RBM **m;
@@ -11,7 +12,8 @@ typedef struct _DBM{
 }DBM;
 
 /* Allocation and deallocation */
-DBM *CreateDBM(int n_visible_layers, int n_hidden_layers, int n_labels, int n_layers); /* It allocates an DBM */
+DBM *CreateDBM(int n_visible_layer_neurons,  int n_labels, int n_hidden_layers,  ...);
+//DBM *CreateDBM(int n_visible_layers, int n_hidden_layers, int n_labels, int n_layers); /* It allocates an DBM */
 void DestroyDBM(DBM **d); /* It deallocates an DBM */
 
 /* DBM information */

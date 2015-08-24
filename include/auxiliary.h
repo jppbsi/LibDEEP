@@ -11,6 +11,7 @@
 #include <gsl/gsl_rng.h>
 #include <gsl/gsl_matrix.h>
 #include <gsl/gsl_vector.h>
+#include <stdarg.h>
 
 /* openCV libraries */
 //#include <cv.h>
@@ -34,6 +35,7 @@ Dataset *CreateDataset(int size, int nfeatures); /* It creates a dataset */
 void DestroyDataset(Dataset **D); /* It destroys a dataset */
 Dataset *CopyDataset(Dataset *d); /* It copies a given dataset */
 Dataset *ConcatenateDataset(Dataset *d1,Dataset *d2);/* It concatenates 2 subsets of a dataSet */
+Dataset *UndoConcatenateDataset(Dataset *d1);/* It undo concatenation of dataSets */
 /********************/
 
 /* Image classification functions */

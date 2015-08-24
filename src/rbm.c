@@ -1,6 +1,5 @@
 #include "rbm.h"
 
-
 /* Allocation and deallocation */
 /* It allocates an RBM */
 RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_labels){
@@ -403,6 +402,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
                 
                     // It sets v1
+					
                     setVisibleLayer(m, D->sample[z].feature);
                 
                     // It accumulates v1

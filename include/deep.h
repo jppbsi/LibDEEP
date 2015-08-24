@@ -17,7 +17,6 @@ extern "C" {
 #include <sys/time.h>
 #include <time.h>
 #include <ctype.h>
-#include <stdarg.h>
 
 /* GSL libraries */
 #include <gsl/gsl_randist.h>
@@ -35,6 +34,7 @@ extern "C" {
 #include "dbn.h"
 #include "regression.h"
 #include "logistic.h"
+#include "dbm.h"
 
 #ifdef __cplusplus
 }

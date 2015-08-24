@@ -2,13 +2,14 @@ LIB=./lib
 INCLUDE=./include
 SRC=./src
 OBJ=./obj
+BIN=./bin
 
 CC=gcc 
 
 FLAGS=  -g -O0
 CFLAGS=''
 
-all: libDeep
+all: libDeep deep_generative_dbm
 
 libDeep: $(LIB)/libDeep.a
 	echo "libDeep.a built..."
@@ -63,7 +64,11 @@ $(OBJ)/logistic.o: $(SRC)/logistic.c
 
 $(OBJ)/dbm.o: $(SRC)/dbm.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/dbm.c \
-	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/dbm.o -fopenmp `pkg-config --cflags --libs gsl`
+	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/dbm.o `pkg-config --cflags --libs gsl`
+
+deep_generative_dbm:
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include $(SRC)/deep_generative_dbm.c \
+	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_generative_dbm   -lm 
 
 clean:
-	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o
+	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o rm -f $(BIN)/*
