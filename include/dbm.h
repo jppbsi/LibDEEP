@@ -15,20 +15,18 @@ typedef struct _DBM{
 DBM *CreateDBM(int n_visible_layer_neurons,  gsl_vector *n_hidden_units, int n_labels); /* It allocates a DBM */
 void DestroyDBM(DBM **d); /* It deallocates a DBM */
 
+/* DBM initialization */
+void InitializeDBM(DBM *d); /* It initializes a DBM */
+
+/* DBM pre-training */
+double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType); /* It performs DBM greedy pre-training step */
+
 /* DBM information */
 void DBMSaveWeights(DBM *d, char *path); /* It writes the weight matrix as PGM images */
-
-/* DBM initialization */
-void InitializeDBM(DBM *d); /* It initializes an DBM */
-
-/* RBM initialization */
-void InitializeRBM(RBM *r);/* It initializes an RBM randonly */
 
 /* Paste DBM Parameters */
 void PasteDBMParameters(RBM *r, RBM *r2);/*  paste doubled paramns to the original size */
 
-/* DBM pre-training */
-double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, int n_epochs, int n_CD_iterations, int batch_size); /* It sets the initial parameters of DBM */
 
 double DBMReconstruction(Dataset *D, DBM *d);
 
