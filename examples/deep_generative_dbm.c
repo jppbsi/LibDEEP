@@ -1,7 +1,7 @@
 #include "deep.h"
 
 int main(int argc, char **argv){
-  	int i,n, n_epochs,n_CD_iterations, batch_size;
+  	int i,n, n_epochs,n_samplings, batch_size;
 	Dataset *Train = NULL, *Test = NULL;
 	Subgraph *gTrain = NULL, *gTest = NULL;
 	gsl_vector *num_hidden_layers = NULL;
@@ -23,7 +23,7 @@ int main(int argc, char **argv){
 		fprintf(stderr, "\nP1: training set in the OPF file format (Train)");
 		fprintf(stderr, "\nP2: test set in the OPF file format (Test)");
 		fprintf(stderr, "\nP3: number of Epochs");
-		fprintf(stderr, "\nP4: number of contrastive divergence iterations");
+		fprintf(stderr, "\nP4: number of samplings");
 		fprintf(stderr, "\nP5: batch size");
 		fprintf(stderr, "\nP6: number of hidden layers");
 		fprintf(stderr, "\nP7 , ..., P16: number of units for each hidden layer from [1,10]\n");
@@ -34,7 +34,7 @@ int main(int argc, char **argv){
 	gTrain = ReadSubgraph(argv[1]); gTest = ReadSubgraph(argv[2]);
 	Train = Subgraph2Dataset(gTrain); Test = Subgraph2Dataset(gTest);
 	n_epochs = atoi(argv[3]);
-	n_CD_iterations = atoi(argv[4]);
+	n_samplings = atoi(argv[4]);
 	batch_size = atoi(argv[5]);
 	
 	num_hidden_layers = gsl_vector_alloc(atoi(argv[6]));
@@ -44,6 +44,7 @@ int main(int argc, char **argv){
 	
 	d = CreateDBM(gTrain->nfeats, num_hidden_layers, gTrain->nlabels);
 	InitializeDBM(d);
+	GreedyPreTrainingDBM(Train, d, n_epochs, n_samplings, batch_size, 0);
 
 /*	//erro pre treino
 	error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, n_epochs, n_CD_iterations, batch_size);

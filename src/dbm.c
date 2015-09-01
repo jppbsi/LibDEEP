@@ -79,14 +79,15 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
     double error;
     
     fprintf(stderr,"\n Training bottom layer ... ");
-    
-    switch (LearningType){
-	case 6:
-	    BernoulliRBMTrainingbyContrastiveDivergence(D, d->m[0], n_epochs, n_samplings, batch_size);
-	break;
-	
-    }
+    d->m[0]->eta = 0.1;
+    d->m[0]->lambda = 0.1;
+    d->m[0]->alpha = 0.001;
+    d->m[0]->eta_min = 0.1;
+    d->m[0]->eta_max = 0.9;
+    Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(D, d->m[0], n_epochs, n_samplings, batch_size);
     fprintf(stderr,"OK");
+    
+    //d->m[0]->W //W1
     
    /* double error, aux;
     Dataset *tmp1 = NULL, *tmp2 = NULL;
