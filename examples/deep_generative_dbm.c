@@ -1,6 +1,6 @@
 #include "deep.h"
 
-DBM * CreateDBMLManyLayers(int nfeats, int nlabels, int nHidden, char **argv){
+/*DBM * CreateDBMLManyLayers(int nfeats, int nlabels, int nHidden, char **argv){
 	switch (nHidden){
 		case 1:	
 			return  CreateDBM(nfeats, nlabels, nHidden,atoi(argv[7]));
@@ -33,10 +33,12 @@ DBM * CreateDBMLManyLayers(int nfeats, int nlabels, int nHidden, char **argv){
 			return CreateDBM(nfeats, nlabels, nHidden,atoi(argv[7]),atoi(argv[8]),atoi(argv[9]),atoi(argv[10]),atoi(argv[11]),atoi(argv[12]),atoi(argv[13]),atoi(argv[14]),atoi(argv[15]),atoi(argv[16]));
 			break;
 	}
-}
+}*/
 
 int main(int argc, char **argv){
-  	int i,n,num_hidden_layers, n_epochs,n_CD_iterations, batch_size;
+  	int i,n, n_epochs,n_CD_iterations, batch_size;
+	gsl_vector *num_hidden_layers = NULL;
+	DBM *d = NULL;
   	float value;
 	double error;
   	char fileName[256];
@@ -51,13 +53,13 @@ int main(int argc, char **argv){
 
 	if((argc <7)||(argc>16)){
 		fprintf(stderr, "\nusage generative_dbm <P1> <P2> <P3> <P4> <P5> <P6> <P7...16>");
-		fprintf(stderr, "\nP1: unlabeled data set in the OPF file format (Train)");
-		fprintf(stderr, "\nP2: labeled data set in the OPF file format (Test)");
+		fprintf(stderr, "\nP1: training set in the OPF file format (Train)");
+		fprintf(stderr, "\nP2: test set in the OPF file format (Test)");
 		fprintf(stderr, "\nP3: number of Epochs");
 		fprintf(stderr, "\nP4: number of contrastive divergence iterations");
 		fprintf(stderr, "\nP5: batch size");
 		fprintf(stderr, "\nP6: number of hidden layers");
-		fprintf(stderr, "\nP7 , ..., P16: number unitys for hidden layer from [1,10]");
+		fprintf(stderr, "\nP7 , ..., P16: number of units for each hidden layer from [1,10]\n");
 		exit(-1);
 	}
 
@@ -66,9 +68,12 @@ int main(int argc, char **argv){
 	n_epochs = atoi(argv[3]);
 	n_CD_iterations = atoi(argv[4]);
 	batch_size = atoi(argv[5]);
-	num_hidden_layers = atoi(argv[6]);
+	
+	num_hidden_layers = gsl_vector_alloc(atoi(argv[6]));
+	for(i = 0; i < num_hidden_layers->size; i++)
+		gsl_vector_set(num_hidden_layers, i, atoi(argv[7+i]));
 
-	DBM *d  = CreateDBMLManyLayers(training_ds->nfeatures, training_ds->nlabels, num_hidden_layers,argv);
+	/*DBM *d  = CreateDBMLManyLayers(training_ds->nfeatures, training_ds->nlabels, num_hidden_layers,argv);
 	InitializeDBM(d);
 	//erro pre treino
 	error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, n_epochs, n_CD_iterations, batch_size);
@@ -110,6 +115,7 @@ int main(int argc, char **argv){
 	DestroyDBM(&d);
 	DestroyDataset(&training_ds);
 	//DestroyDataset(&testing_ds);
+	gsl_vector_free(num_hidden_layers);
 
 	return 0;
 }

@@ -67,7 +67,7 @@ $(OBJ)/dbm.o: $(SRC)/dbm.c
 	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/dbm.o `pkg-config --cflags --libs gsl`
 
 deep_generative_dbm:
-	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include $(SRC)/deep_generative_dbm.c \
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_generative_dbm.c \
 	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_generative_dbm   -lm 
 
 clean:

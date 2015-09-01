@@ -145,7 +145,7 @@ double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, in
     return error;
 }
 
-double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
+/*double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
     gsl_vector *h2 = NULL *h1 = NULL;
     double error;
     int id, i;
@@ -159,9 +159,9 @@ double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
     }
 	gsl_vector_free(v);
 	gsl_vector_free(h2);
-}
+}*/
 
-gsl_vector *ForwardPass(gsl_vector *s, DBN *d){
+/*gsl_vector *ForwardPass(gsl_vector *s, DBN *d){
     int l;
     gsl_vector *h = NULL, *v = NULL;
     
@@ -170,7 +170,7 @@ gsl_vector *ForwardPass(gsl_vector *s, DBN *d){
         setVisibleLayer(d->m[0], s);
         
         /* for each layer */
-        for(l = 0; l < d->n_layers;  l++){
+        /*for(l = 0; l < d->n_layers;  l++){
             h = gsl_vector_calloc(d->m[l]->n_hidden_layer_neurons);
             h = getProbabilityTurningOnHiddenUnit(d->m[l], v);
         
@@ -184,7 +184,7 @@ gsl_vector *ForwardPass(gsl_vector *s, DBN *d){
         fprintf(stderr,"\nThere is no DBN allocated @ForwardPass.\n");
         return NULL;
     }
-}
+}*/
 
 double DBMReconstruction(Dataset *D, DBM *d){
     gsl_vector *h_prime = NULL,*h_prime0 = NULL, *v_prime = NULL, *aux = NULL;
