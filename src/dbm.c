@@ -1,52 +1,21 @@
 #include "dbm.h"
 
-
 /* Allocation and deallocation */
 
-
-/* It allocates an DBM */
-DBM *CreateDBM(int n_visible_layer_neurons,  int n_labels, int n_hidden_layers,  ...){
+/* It allocates a DBM */
+DBM *CreateDBM(int n_visible_layer_neurons,  gsl_vector *n_hidden_units, int n_labels){
     DBM *d = NULL;
-    int i, layer_old, layer;
-
-    va_list ap;
+    int i;
     
     d = (DBM *)malloc(sizeof(DBM));
-    d->n_layers = n_hidden_layers;
+    d->n_layers = n_hidden_units->size;
     d->m = (RBM **)malloc(d->n_layers*sizeof(RBM *));
     
-    //only the first layer has the number of visible inputs equals to the number of features
-	layer_old = n_visible_layer_neurons;
-   
-	va_start(ap, n_hidden_layers); 
-    //for(i = 1; i < d->n_layers; i++){
-	for (i = 0; i <  n_hidden_layers; i++) {
-		layer = va_arg(ap, int); 
-    	d->m[i] = CreateRBM(layer_old, layer, n_labels);
-		layer_old = layer;
-	}
-	va_end(ap);
-    
+    for(i = 1; i < d->n_layers; i++)
+	d->m[i] = CreateRBM(n_visible_layer_neurons, gsl_vector_get(n_hidden_units, i), n_labels);
+	
     return d;
 }
-
-/* It allocates an DBM */
-//DBM *CreateDBM(int n_visible_layer_neurons, int n_hidden_layers_neurons, int n_labels, int n_layers){
-//    DBM *d = NULL;
-//    int i;
-//    
-//    d = (DBM *)malloc(sizeof(DBM));
-//    d->n_layers = n_layers;
-//    d->m = (RBM **)malloc(d->n_layers*sizeof(RBM *));
-//    
-//    //only the first layer has the number of visible inputs equals to the number of features
-//    d->m[0] = CreateRBM(n_visible_layer_neurons , n_hidden_layers_neurons, n_labels);
-//    for(i = 1; i < d->n_layers; i++){
-//    	d->m[i] = CreateRBM(n_hidden_layers_neurons, n_hidden_layers_neurons, n_labels);
-//	}
-//    
-//    return d;
-//}
 
 /* It deallocates an DBM */
 void DestroyDBM(DBM **d){

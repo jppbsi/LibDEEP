@@ -1,4 +1,4 @@
-/* It implements a Deep Belief Network */
+/* It implements a Deep Bolztmann Machine */
 
 #ifndef DBM_H
 #define DBM_H
@@ -12,9 +12,8 @@ typedef struct _DBM{
 }DBM;
 
 /* Allocation and deallocation */
-DBM *CreateDBM(int n_visible_layer_neurons,  int n_labels, int n_hidden_layers,  ...);
-//DBM *CreateDBM(int n_visible_layers, int n_hidden_layers, int n_labels, int n_layers); /* It allocates an DBM */
-void DestroyDBM(DBM **d); /* It deallocates an DBM */
+DBM *CreateDBM(int n_visible_layer_neurons,  gsl_vector *n_hidden_units, int n_labels); /* It allocates a DBM */
+void DestroyDBM(DBM **d); /* It deallocates a DBM */
 
 /* DBM information */
 void DBMSaveWeights(DBM *d, char *path); /* It writes the weight matrix as PGM images */
