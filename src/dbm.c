@@ -121,7 +121,7 @@ double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, in
     //Concatenate 2 folds of the dataset
 	tmp1 = ConcatenateDataset(D,D);
 
-	
+	error = 0.0;
 	RBM *r = NULL; 
 	//fprintf(stdout,"\nCconcatenou base");
 
@@ -173,18 +173,58 @@ double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, in
         DestroyDataset(&tmp2);
     }
     DestroyDataset(&tmp1);
-    error = DBMReconstruction(D, d);	
     return error;
 }
 
-double DBMReconstruction(Dataset *D, DBM *d){
-    gsl_vector *h_prime = NULL,*h_prime0 = NULL, *v_prime = NULL, *aux = NULL;
-    double error = 0.0, beta = 1.0;
+double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
+    gsl_vector *h2 = NULL *h1 = NULL;
+    double error;
     int id, i;
 
 
     for(i = 0; i < D->size; i++){      
-		beta = (D->size-(float)i)/D->size;
+        h2 = ForwardPass(D->sample[i].feature, d);
+
+		h1 = gsl_vector_calloc(d->m[1]->n_visible_layer_neurons);
+        h1 = getProbabilityTurningOnVisibleUnit(d->m[1], h2);
+    }
+	gsl_vector_free(v);
+	gsl_vector_free(h2);
+}
+
+gsl_vector *ForwardPass(gsl_vector *s, DBN *d){
+    int l;
+    gsl_vector *h = NULL, *v = NULL;
+    
+    if(d){
+        v = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
+        setVisibleLayer(d->m[0], s);
+        
+        /* for each layer */
+        for(l = 0; l < d->n_layers;  l++){
+            h = gsl_vector_calloc(d->m[l]->n_hidden_layer_neurons);
+            h = getProbabilityTurningOnHiddenUnit(d->m[l], v);
+        
+            gsl_vector_free(v);
+            v = gsl_vector_calloc(d->m[l]->n_hidden_layer_neurons);
+            gsl_vector_memcpy(v, h);
+            gsl_vector_free(h);
+        }
+        return v;
+    }else{
+        fprintf(stderr,"\nThere is no DBN allocated @ForwardPass.\n");
+        return NULL;
+    }
+}
+
+double DBMReconstruction(Dataset *D, DBM *d){
+    gsl_vector *h_prime = NULL,*h_prime0 = NULL, *v_prime = NULL, *aux = NULL;
+    double error, beta;
+    int id, i;
+
+
+    for(i = 0; i < D->size; i++){      
+		beta = 1 - ((D->size-(float)i)/D->size);
 
         aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
         gsl_vector_memcpy(aux, D->sample[i].feature);
@@ -206,9 +246,6 @@ double DBMReconstruction(Dataset *D, DBM *d){
 		gsl_vector_free(aux);
 		gsl_vector_free(h_prime);
 
-		//first layer
-        //aux = gsl_vector_calloc(d->m[0]->n_hidden_layer_neurons);
-        //gsl_vector_memcpy(aux, d->m[0]->h);
         v_prime = getProbabilityTurningOnVisibleUnitDBMFirstLayer(d->m[0], h_prime0,beta);
         gsl_vector_free(h_prime0);
 

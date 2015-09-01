@@ -62,9 +62,7 @@ int main(int argc, char **argv){
 	}
 
 	fprintf(stdout, "\nReading data file ...");
-	fprintf(stdout,"\nCriando base");
 	Dataset *training_ds = Subgraph2Dataset(ReadSubgraph(argv[1]));
-	fprintf(stdout,"\nBase Criada");
 	n_epochs = atoi(argv[3]);
 	n_CD_iterations = atoi(argv[4]);
 	batch_size = atoi(argv[5]);
@@ -72,7 +70,12 @@ int main(int argc, char **argv){
 
 	DBM *d  = CreateDBMLManyLayers(training_ds->nfeatures, training_ds->nlabels, num_hidden_layers,argv);
 	InitializeDBM(d);
+	//erro pre treino
 	error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, n_epochs, n_CD_iterations, batch_size);
+	fprintf(stdout,"\nErro pre treino = %lf",erro);
+	//erro validacao
+	error = DBMReconstruction(D, d);	
+	fprintf(stdout,"\nErro reconstrucao = %lf",erro);
 	//error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, 45, 1, 20);
 
 
