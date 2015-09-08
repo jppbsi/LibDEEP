@@ -3,6 +3,7 @@
 #ifndef LOGISTIC_H
 #define LOGISTIC_H
 
+#include <math.h>
 #include "deep.h"
 
 /* Logistic Regression */

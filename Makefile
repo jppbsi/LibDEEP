@@ -44,7 +44,7 @@ $(OBJ)/math_functions.o: $(SRC)/math_functions.c
 
 $(OBJ)/rbm.o: $(SRC)/rbm.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/rbm.c \
-	-L $(OPF_DIR)/lib -lopf -o $(OBJ)/rbm.o `pkg-config --cflags --libs gsl`
+	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/rbm.o `pkg-config --cflags --libs gsl`
 
 $(OBJ)/auxiliary.o: $(SRC)/auxiliary.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/auxiliary.c \
@@ -60,7 +60,7 @@ $(OBJ)/regression.o: $(SRC)/regression.c
 
 $(OBJ)/logistic.o: $(SRC)/logistic.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/logistic.c \
-	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/logistic.o `pkg-config --cflags --libs gsl`
+	-L $(LIB) -L $(OPF_DIR)/lib -lopf -o $(OBJ)/logistic.o `pkg-config --cflags --libs gsl -lm`
 
 $(OBJ)/dbm.o: $(SRC)/dbm.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/dbm.c \
