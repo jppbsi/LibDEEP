@@ -413,7 +413,6 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                     
                         // It computes the P(h=1|v1), i.e., it computes h1
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
-                        //#pragma omp parallel
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
                             if(gsl_vector_get(tmp_probh1, j) >= sample) gsl_vector_set(m->h, j, 1.0);
@@ -427,7 +426,6 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                     
                         // It computes the P(v2=1|h1), i.e., it computes v2
                         tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
-                        //#pragma omp parallel
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
@@ -436,7 +434,6 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                 
                         // It computes the P(h2=1|v2), i.e., it computes h2 (hn)
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
-                        //#pragma omp parallel
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
                             if(gsl_vector_get(tmp_probhn, j) >= sample) gsl_vector_set(m->h, j, 1.0);
@@ -490,7 +487,6 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
             
             gsl_vector_scale(v1, 1.0/D->size); //it averages v1
             gsl_vector_scale(vn, 1.0/D->size); //it averages vn
@@ -895,7 +891,6 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
             
             gsl_vector_scale(v1, 1.0/D->size); //it averages v1
             gsl_vector_scale(vn, 1.0/D->size); //it averages vn
@@ -1111,7 +1106,6 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
             
             gsl_vector_scale(v1, 1.0/D->size); //it averages v1
             gsl_vector_scale(vn, 1.0/D->size); //it averages vn
