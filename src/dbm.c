@@ -130,8 +130,8 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
 		}
         DestroyDataset(&tmp1);
 
-		/* it updates the last layer to be the input to the next RBM */
-        /*tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
+		it updates the last layer to be the input to the next RBM 
+        tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
 
         for(z = 0; z < tmp1->size; z++){
             for(j = 0; j < tmp1->nfeatures; j++){
@@ -194,8 +194,8 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
 		}
         DestroyDataset(&tmp1);
 
-		/* it updates the last layer to be the input to the next RBM */
-        /*tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
+		 it updates the last layer to be the input to the next RBM 
+        tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
 
         for(z = 0; z < tmp1->size; z++){
             for(j = 0; j < tmp1->nfeatures; j++){
@@ -237,7 +237,7 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
         v = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
         setVisibleLayer(d->m[0], s);
         
-        /* for each layer */
+         for each layer */
         /*for(l = 0; l < d->n_layers;  l++){
             h = gsl_vector_calloc(d->m[l]->n_hidden_layer_neurons);
             h = getProbabilityTurningOnHiddenUnit(d->m[l], v);

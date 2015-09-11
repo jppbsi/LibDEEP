@@ -274,6 +274,22 @@ gsl_vector *label2binary_gsl_vector(int l, int n_bits){
     
 }
 
+/* It converts a graph node to a gsl_vector */
+gsl_vector *node2gsl_vector(float *x, int n){
+    gsl_vector *v = NULL;
+    int i;
+    
+    if(x){
+	v = gsl_vector_alloc(n);
+	for(i = 0; i < v->size; i++)
+	    gsl_vector_set(v, i, x[i]);
+	return v;
+    }else{
+	fprintf(stderr,"\nThere is no node allocated @node2gsl_vector\n");
+	return NULL;
+    }
+}
+
 /* It generates a random seed */
 unsigned long int random_seed_deep(){
     struct timeval tv;

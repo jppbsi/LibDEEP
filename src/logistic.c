@@ -9,23 +9,24 @@ w: learned parameters of the model
 Y: target values
 ---
 Output: error */
-double Logistic_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
+double Logistic_Regression(Subgraph *g, gsl_vector *w){
     double error, tmp, h_w;
-    gsl_vector_view row;
+    gsl_vector *x = NULL;
     int i;
     
-    if(X && w){
+    if(g && w){
         
         error = 0.0;
-        for(i = 0; i < X->size1; i++){ // it runs over all data samples
-            row = gsl_matrix_row(X, i);
-			h_w = h_logistic(&row.vector, w);
-            error+=(gsl_vector_get(Y, i)*log(h_w+0.000001)+((1-gsl_vector_get(Y, i))*log(1-h_w+0.000001))); //Equation 23
+        for(i = 0; i < g->nnodes; i++){ // it runs over all data samples
+            x = node2gsl_vector(g->node[i].feat, g->nfeats); // it picks sample x_i  
+	    h_w = h_logistic(x, w);
+            error+=(g->node[i].truelabel*log(h_w+0.000001)+((1-g->node[i].truelabel)*log(1-h_w+0.000001))); //Equation 23
+	    gsl_vector_free(x);
         }
-        return -error/X->size1;
+        return -error/g->nnodes;
         
     }else{
-        fprintf(stderr,"\nThere is no X and/or w allocated @Logistic_Regression.\n");
+        fprintf(stderr,"\nThere is no data and/or w allocated @Logistic_Regression.\n");
         return -1.0;
     }
 }
@@ -38,22 +39,23 @@ Y: target values
 j: ID of the feature
 ---
 Output: cost */
-double Logistic_RegressionPartialDerivative(gsl_matrix *X, gsl_vector *w, gsl_vector *Y, int j){
+double Logistic_RegressionPartialDerivative(Subgraph *g, gsl_vector *w, int j){
     double partial_derivative_value, tmp;
-    gsl_vector_view x;
+    gsl_vector *x = NULL;
     int i;
     
-    if(X && w){
+    if(g && w){
         
         partial_derivative_value = 0.0;
-        for(i = 0; i < X->size1; i++){ // it runs over all data samples
-            x = gsl_matrix_row(X, i); // it picks sample x_i            
-            partial_derivative_value+=((h_logistic(&x.vector, w)-gsl_vector_get(Y, i))*gsl_vector_get(&x.vector, j)); //tmp = sum(h(x_i)-y_i)x_i^j
+        for(i = 0; i < g->nnodes; i++){ // it runs over all data samples
+            x = node2gsl_vector(g->node[i].feat, g->nfeats); // it picks sample x_i            
+            partial_derivative_value+=((h_logistic(x, w)-g->node[i].truelabel)*gsl_vector_get(x, j)); //tmp = sum(h(x_i)-y_i)x_i^j
+	    gsl_vector_free(x);
         }
         return partial_derivative_value;
         
     }else{
-        fprintf(stderr,"\nThere is no X and/or w allocated @Linear_Regression.\n");
+        fprintf(stderr,"\nThere is no data and/or w allocated @Linear_Regression.\n");
         return DBL_MAX;
     }
 }
@@ -85,16 +87,13 @@ X: test set
 w: parameters of the model
 ---
 Output: predicted labels */
-gsl_vector *Logistic_Regression4Classification(gsl_matrix *X, gsl_vector *w){
+void Logistic_Regression4Classification(Subgraph *Test, gsl_vector *w){
 	int i;
-	gsl_vector *predict = NULL;
-	gsl_vector_view x;
+	gsl_vector *x = NULL;
 	
-	predict = gsl_vector_calloc(X->size1);
-	for(i = 0; i < X->size1; i++){ //for each test sample
-		x = gsl_matrix_row(X, i); // it picks sample x_i   
-		gsl_vector_set(predict, i, round(h_logistic(&x.vector, w)));
+	for(i = 0; i < Test->nnodes; i++){ //for each test sample
+		x = node2gsl_vector(Test->node[i].feat, Test->nfeats); // it picks sample x_i
+		Test->node[i].label = round(h_logistic(x, w));
+		gsl_vector_free(x);
 	}
-	
-	return predict;
 }

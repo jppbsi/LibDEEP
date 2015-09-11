@@ -330,7 +330,7 @@ void PrintVisibleUnits(RBM *m){
         cvReleaseImage(&img);
     }
     
-}
+}*/
 /**************************/
 
 

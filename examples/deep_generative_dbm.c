@@ -65,7 +65,7 @@ int main(int argc, char **argv){
 
 	//value = atof(argv[4]);
 	
-/*
+
 	fprintf(stdout, "\n\nClustering by OPF ");
 	opf_OPFClustering(g);
 	printf("num of clusters %d\n",g->nlabels);
