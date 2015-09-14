@@ -14,8 +14,8 @@ DBM *CreateDBM(int n_visible_layer_neurons,  gsl_vector *n_hidden_units, int n_l
     //only the first layer has the number of visible inputs equals to the number of features
     d->m[0] = CreateRBM(n_visible_layer_neurons, (int)gsl_vector_get(n_hidden_units, 0), n_labels);
     for(i = 1; i < d->n_layers; i++)
-	d->m[i] = CreateRBM(n_visible_layer_neurons, (int)gsl_vector_get(n_hidden_units, i), n_labels);
-	
+	d->m[i] = CreateRBM((int)gsl_vector_get(n_hidden_units, i-1), (int)gsl_vector_get(n_hidden_units, i), n_labels);
+    
     return d;
 }
 
@@ -77,141 +77,36 @@ batch_size: mini-batch size
 LearningType: type of learning algorithm [1 - CD|2 - PCD|3 - FPCD] */
 double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType){
     double error;
+    int i;
+    Dataset *tmp1 = NULL;    
     
-    fprintf(stderr,"\n Training bottom layer ... ");
-    d->m[0]->eta = 0.1;
-    d->m[0]->lambda = 0.1;
-    d->m[0]->alpha = 0.001;
-    d->m[0]->eta_min = 0.1;
-    d->m[0]->eta_max = 0.9;
-    Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(D, d->m[0], n_epochs, n_samplings, batch_size);
-    fprintf(stderr,"OK");
+    tmp1 = CopyDataset(D);
     
-    //d->m[0]->W //W1
-    
-   /* double error, aux;
-    Dataset *tmp1 = NULL, *tmp2 = NULL;
-    int i, j, z, id;
-   
-   
-	error = 0.0;
-	RBM *r = NULL; 
-	//fprintf(stdout,"\nCconcatenou base");
-
-    for(id = 0; id < d->n_layers; id++){
+    for (i = 0; i<d->n_layers;i++){
+        d->m[i]->eta = 0.1;
+        d->m[i]->lambda = 0.1;
+        d->m[i]->alpha = 0.001;
+        d->m[i]->eta_min = 0.1;
+        d->m[i]->eta_max = 0.9;
         
-		//For the first layer of the DBM
-		if(id==0){
-			r = CreateRBM(tmp1->nfeatures, d->m[0]->n_hidden_layer_neurons, d->m[0]->n_labels);
-			error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, r, n_epochs, n_CD_iterations, batch_size);
-			//Paste the first half of the temp RBM to the first layer of the DBM	
-			PasteDBMParameters(d->m[id], r);
-			DestroyRBM(&r);
-		//For the last layer of the DBM
-		}else if(id==d->n_layers-1){
-			//Creates a temp RBM with double hiden layers
-			r = CreateRBM(d->m[id]->n_visible_layer_neurons, d->m[id]->n_hidden_layer_neurons*2, d->m[id]->n_labels );
-			error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, r, n_epochs, n_CD_iterations, batch_size);
-			PasteDBMParameters(d->m[id], r);
-			DestroyRBM(&r);
-		//Intermediate hiden layers
-		}else{
-        	error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size);
-			//halves W
-			gsl_matrix_scale(d->m[id]->W, 0.5);	
-
-		}
-
-        
-		if(id==0){
-			tmp2 = UndoConcatenateDataset(tmp1);
-		}else{
-        	tmp2 = CopyDataset(tmp1);
-		}
-        DestroyDataset(&tmp1);
-
-		it updates the last layer to be the input to the next RBM 
-        tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
-
-        for(z = 0; z < tmp1->size; z++){
-            for(j = 0; j < tmp1->nfeatures; j++){
-                aux = 0.0;
-                for(i = 0; i < tmp2->nfeatures; i++){
-                    aux+=(gsl_vector_get(tmp2->sample[z].feature, i)*gsl_matrix_get(d->m[id]->W, i, j));
-				}
-                aux+=gsl_vector_get(d->m[id]->b, j);
-                gsl_vector_set(tmp1->sample[z].feature, j, SigmoidLogistic(aux));
-            }
+        if(i == 0){
+            fprintf(stderr,"\n Training bottom layer ... ");
+            error = Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
+        }else if(i == d->n_layers - 1){
+            fprintf(stderr,"\n Training top layer ... ");
+            error += Bernoulli_TrainingRBMbyCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
+        }else{
+            fprintf(stderr,"\n Training layer %i ... ",i);
+            error += Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
         }
-        DestroyDataset(&tmp2);
-    }
-    DestroyDataset(&tmp1);*/
-	
-    return error;
-}
-	
-/*double GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(Dataset *D, DBM *d, int n_epochs, int n_CD_iterations, int batch_size){
-    double error, aux;
-    Dataset *tmp1 = NULL, *tmp2 = NULL;
-    int i, j, z, id;
-   // fprintf(stderr,"\nChegou antes de concatenar base");
-    //Concatenate 2 folds of the dataset
-	tmp1 = ConcatenateDataset(D,D);
-
-	error = 0.0;
-	RBM *r = NULL; 
-	//fprintf(stdout,"\nCconcatenou base");
-
-    for(id = 0; id < d->n_layers; id++){
+        fprintf(stderr,"OK");
         
-		//For the first layer of the DBM
-		if(id==0){
-			r = CreateRBM(tmp1->nfeatures, d->m[0]->n_hidden_layer_neurons, d->m[0]->n_labels);
-			error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, r, n_epochs, n_CD_iterations, batch_size);
-			//Paste the first half of the temp RBM to the first layer of the DBM	
-			PasteDBMParameters(d->m[id], r);
-			DestroyRBM(&r);
-		//For the last layer of the DBM
-		}else if(id==d->n_layers-1){
-			//Creates a temp RBM with double hiden layers
-			r = CreateRBM(d->m[id]->n_visible_layer_neurons, d->m[id]->n_hidden_layer_neurons*2, d->m[id]->n_labels );
-			error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, r, n_epochs, n_CD_iterations, batch_size);
-			PasteDBMParameters(d->m[id], r);
-			DestroyRBM(&r);
-		//Intermediate hiden layers
-		}else{
-        	error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size);
-			//halves W
-			gsl_matrix_scale(d->m[id]->W, 0.5);	
-
-		}
-
-        
-		if(id==0){
-			tmp2 = UndoConcatenateDataset(tmp1);
-		}else{
-        	tmp2 = CopyDataset(tmp1);
-		}
         DestroyDataset(&tmp1);
-
-		 it updates the last layer to be the input to the next RBM 
-        tmp1 = CreateDataset(D->size, d->m[id]->n_hidden_layer_neurons);
-
-        for(z = 0; z < tmp1->size; z++){
-            for(j = 0; j < tmp1->nfeatures; j++){
-                aux = 0.0;
-                for(i = 0; i < tmp2->nfeatures; i++){
-                    aux+=(gsl_vector_get(tmp2->sample[z].feature, i)*gsl_matrix_get(d->m[id]->W, i, j));
-				}
-                aux+=gsl_vector_get(d->m[id]->b, j);
-                gsl_vector_set(tmp1->sample[z].feature, j, SigmoidLogistic(aux));
-            }
-        }
-        DestroyDataset(&tmp2);
+        tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
     }
     DestroyDataset(&tmp1);
     return error;
-}*/
+}
 
 /*double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
     gsl_vector *h2 = NULL *h1 = NULL;
@@ -257,28 +152,29 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
 double DBMReconstruction(Dataset *D, DBM *d){
     gsl_vector *h_prime = NULL,*h_prime0 = NULL, *v_prime = NULL, *aux = NULL;
     double error, beta;
-    int id, i;
+    int i,j;
+    error = 0.0;
 
-
-    for(i = 0; i < D->size; i++){      
-		beta = 1 - ((D->size-(float)i)/D->size);
+    for(j = 0; j < D->size;j++){      
+		beta = 1 - ((D->size-(float)j)/D->size);
 
         aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
-        gsl_vector_memcpy(aux, D->sample[i].feature);
-		for(id = 0; id < d->n_layers-1; id++){
-			h_prime = getProbabilityTurningOnHiddenUnitDBM(d->m[id],d->m[id+1], aux, beta);
-			if (id==0){
-				h_prime0 = gsl_vector_calloc(d->m[id+1]->n_visible_layer_neurons);
+        gsl_vector_memcpy(aux, D->sample[j].feature);
+		for(i = 0; i < d->n_layers-1; i++){            
+
+			h_prime = getProbabilityTurningOnHiddenUnitDBM(d->m[i],d->m[i+1], aux, beta);
+			if (i==0){
+				h_prime0 = gsl_vector_calloc(d->m[0]->n_hidden_layer_neurons);
                 gsl_vector_memcpy(h_prime0, h_prime);
 			}
             gsl_vector_free(aux);
             
-            aux = gsl_vector_calloc(d->m[id+1]->n_visible_layer_neurons);
+            aux = gsl_vector_calloc(d->m[i+1]->n_visible_layer_neurons);
             gsl_vector_memcpy(aux, h_prime);
            
             gsl_vector_free(h_prime);
 		}
-		//last layer	
+		//last layer
 		h_prime = getProbabilityTurningOnHiddenUnitDBMLastLayer(d->m[d->n_layers-1], aux, beta);
 		gsl_vector_free(aux);
 		gsl_vector_free(h_prime);
@@ -286,13 +182,11 @@ double DBMReconstruction(Dataset *D, DBM *d){
         v_prime = getProbabilityTurningOnVisibleUnitDBMFirstLayer(d->m[0], h_prime0,beta);
         gsl_vector_free(h_prime0);
 
-
-        error+=getReconstructionError(D->sample[i].feature, v_prime);
+        error+=getReconstructionError(D->sample[j].feature, v_prime);
         gsl_vector_free(v_prime);
     }
-
     error/=D->size;
-    fprintf(stdout,"\nError= %f",error);
+    fprintf(stdout,"Reconstruction error = %lf\n", error);
     return error;
 }
 
@@ -312,15 +206,12 @@ gsl_vector *getProbabilityTurningOnHiddenUnitDBM(RBM *rbm,RBM *next, gsl_vector 
 		//ex: v
         for(i = 0; i < rbm->n_visible_layer_neurons; i++)
             tmpPre+=(gsl_vector_get(v, i)*gsl_matrix_get(rbm->W, i, j));
-		tmpPre+=gsl_vector_get(rbm->b, j);
 
 		//ex: h2
         for(m = 0; m < next->n_hidden_layer_neurons; m++)
             tmpPos+=(gsl_vector_get(rbm->h, j)*gsl_matrix_get(next->W, j, m));
-		//should i consider the bias twice??
-		tmpPos+=gsl_vector_get(rbm->b, j);
 
-		tmp = beta*(tmpPre+tmpPos);		
+		tmp = beta*(tmpPre+tmpPos + gsl_vector_get(rbm->b, j));		
         
 		tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);

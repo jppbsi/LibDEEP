@@ -45,6 +45,12 @@ int main(int argc, char **argv){
 	d = CreateDBM(gTrain->nfeats, num_hidden_layers, gTrain->nlabels);
 	InitializeDBM(d);
 	GreedyPreTrainingDBM(Train, d, n_epochs, n_samplings, batch_size, 0);
+	error = DBMReconstruction(Train, d);
+	
+	
+	
+	//error = DBMReconstruction(Train, d);
+	//fprintf(stdout,"\nErro reconstrucao no treinamento= %f\n",erro);
 
 /*	//erro pre treino
 	error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, n_epochs, n_CD_iterations, batch_size);
