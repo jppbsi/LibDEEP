@@ -2,57 +2,63 @@
 #include "deep.h"
 #include "opt.h"
 
+void LoadData(char *fileName, gsl_matrix **X, gsl_vector **Y){
+        FILE *fp = NULL;
+        int m,n,i,j;
+        double value;
+        gsl_matrix *X_tmp = *X;
+        gsl_vector *Y_tmp = *Y;
+        
+        fp = fopen(fileName, "r");
+        if(!fp){
+            fprintf(stderr,"\nunable to open file %s\n", fileName);
+            exit(-1);
+        }
+        
+        fscanf(fp,"%d %d", &m, &n);
+        X_tmp = gsl_matrix_calloc(m, n);
+        Y_tmp = gsl_vector_calloc(m);
+        
+        for(i = 0; i < m; i++){
+            fscanf(fp,"%lf",&value); //reading the target first
+            gsl_vector_set(Y_tmp, i, value);
+            for(j = 0; j < n; j++){
+                fscanf(fp,"%lf",&value);
+                gsl_matrix_set(X_tmp, i, j, value); //reading input feature
+            }
+        }
+            
+        fclose(fp);
+        *X = X_tmp;
+        *Y = Y_tmp;
+}
+
 int main(int argc, char **argv){
 
-    if(argc != 4){
-        fprintf(stderr,"\nusage Logistic_Regression <training set> <test set> <learning rate>\n");
+    if(argc != 3){
+        fprintf(stderr,"\nusage Linear_Regression <training set> <learning rate>\n");
         exit(-1);
     }
 
     int i,j;
-    Subgraph *Train = NULL, *Test = NULL;
-    double alpha = atof(argv[3]);
-    gsl_matrix *X = NULL, *XTest = NULL;
-    gsl_vector *Y = NULL, *YTest = NULL, *w = NULL, *predict = NULL;
+    double alpha = atof(argv[3]), errorTRAIN;
+    gsl_matrix *X = NULL;
+    gsl_vector *Y = NULL, *w = NULL;
+    FILE *fp = NULL;
     
-    Train = ReadSubgraph(argv[1]);
-    Test = ReadSubgraph(argv[2]);
+    LoadData(argv[1], &X, &Y);
+    w = gsl_vector_alloc(X->size2);
     
-    X = gsl_matrix_calloc(Train->nnodes, Train->nfeats);
-    Y = gsl_vector_calloc(Train->nnodes);
-    
-    /* Reading training data */
-    for(i = 0; i < X->size1; i++){
-        for(j = 0; j < X->size2; j++)
-            gsl_matrix_set(X, i, j, Train->node[i].feat[j]);
-        gsl_vector_set(Y, i, Train->node[i].truelabel);
-    }
-    
-    XTest = gsl_matrix_calloc(Test->nnodes, Test->nfeats);
-    YTest = gsl_vector_calloc(Test->nnodes);
-    
-    /* Reading test data */
-    for(i = 0; i < XTest->size1; i++){
-        for(j = 0; j < XTest->size2; j++)
-            gsl_matrix_set(XTest, i, j, Test->node[i].feat[j]);
-        gsl_vector_set(YTest, i, Test->node[i].truelabel);
-    }
-    
-    w = LogisticRegression_Fitting(X, Y, GRADIENT_DESCENT, alpha);
-    predict = Logistic_Regression4Classification(XTest, w);
-    
-    for(i = 0; i < X->size1; i++)
-        fprintf(stderr,"\n Test sample %d -> True label: %d -> Predicted label: %d", i, (int)gsl_vector_get(YTest, i), (int)gsl_vector_get(predict, i));
+    errorTRAIN = LinearRegression_Fitting(X, Y, GRADIENT_DESCENT, alpha, w);
 
+    fp = fopen("w_coefficients.txt", "w");
+    for(i = 0; i < w->size; i++)
+        fprintf(fp,"%lf ", gsl_vector_get(w, i));
+    fclose(fp);
     
-    DestroySubgraph(&Train);
-    DestroySubgraph(&Test);
     gsl_matrix_free(X);
-    gsl_matrix_free(XTest);
     gsl_vector_free(Y);
-    gsl_vector_free(YTest);
     gsl_vector_free(w);
-    gsl_vector_free(predict);
     
     return 0;
 }

@@ -3,25 +3,27 @@
 /* Linear Regression */
 
 /* It executes the linear regression
-Parameters: [X, w, Y]
-X: input data
+Parameters: [g, w]
+g: input data
 w: learned parameters of the model
-Y: target values
 ---
 Output: mean squared error */
-double Linear_Regression(gsl_matrix *X, gsl_vector *w, gsl_vector *Y){
-    double MSE, tmp;
-    gsl_vector_view row;
-    int i;
+double Linear_Regression(Subgraph *g, gsl_vector *w){
+    double MSE, tmp, h_w, y;
+    gsl_vector *x = NULL;
+    int i, m = g->nnodes, n = g->nfeats-1;
     
-    if(X && w){
+    if(g && w){
         
         MSE = 0.0;
-        for(i = 0; i < X->size1; i++){ // it runs over all data samples
-            row = gsl_matrix_row(X, i);
-            MSE+=pow((h(&row.vector, w)-gsl_vector_get(Y, i)),2); //tmp = sum(h(x_i)-y_i)^2
+        for(i = 0; i < g->nnodes; i++){ // it runs over all data samples
+            x = node2gsl_vector(g->node[i].feat, n); // it picks sample x_i  
+            h_w = h_linear_regression(x, w);
+            y = (double)g->node[i].feat[g->nfeats-1];
+            MSE+=pow(h_w-y,2); //tmp = sum(h(x_i)-y_i)^2
+            gsl_vector_free(x);
         }
-        return MSE/(2*X->size1);
+        return MSE/(2*m);
         
     }else{
         fprintf(stderr,"\nThere is no X and/or w allocated @Linear_Regression.\n");
@@ -37,17 +39,21 @@ Y: target values
 j: ID of the feature
 ---
 Output: cost */
-double Linear_RegressionPartialDerivative(gsl_matrix *X, gsl_vector *w, gsl_vector *Y, int j){
-    double partial_derivative_value, tmp;
-    gsl_vector_view x;
-    int i;
+double Linear_RegressionPartialDerivative(Subgraph *g, gsl_vector *w, int j){
+    double partial_derivative_value, tmp, h_w, y, x_j;
+    gsl_vector *x = NULL;
+    int i, n = g->nfeats-1;
     
-    if(X && w){
+    if(g && w){
         
         partial_derivative_value = 0.0;
-        for(i = 0; i < X->size1; i++){ // it runs over all data samples
-            x = gsl_matrix_row(X, i); // it picks sample x_i            
-            partial_derivative_value+=((h(&x.vector, w)-gsl_vector_get(Y, i))*gsl_vector_get(&x.vector, j)); //tmp = sum(h(x_i)-y_i)x_i^j
+        for(i = 0; i < g->nnodes; i++){ // it runs over all data samples
+            x = node2gsl_vector(g->node[i].feat, n); // it picks sample x_i
+            h_w = h_linear_regression(x, w);
+            y = (double)g->node[i].feat[g->nfeats-1];
+            x_j = g->node[i].feat[j];
+            partial_derivative_value+=((h_w-y)*x_j); //tmp = sum(h(x_i)-y_i)x_i^j
+            gsl_vector_free(x);
         }
         return partial_derivative_value;
         
@@ -63,7 +69,7 @@ x: input sample
 w: parameters of the model
 ---
 Output: value of h function */
-double h(gsl_vector *x, gsl_vector *w){
+double h_linear_regression(gsl_vector *x, gsl_vector *w){
     double tmp = 0.0;
     int i;
     
