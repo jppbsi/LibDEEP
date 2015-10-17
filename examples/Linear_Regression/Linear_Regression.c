@@ -16,13 +16,14 @@ void LoadData(char *fileName, gsl_matrix **X, gsl_vector **Y){
         }
         
         fscanf(fp,"%d %d", &m, &n);
-        X_tmp = gsl_matrix_calloc(m, n);
+        X_tmp = gsl_matrix_calloc(m, n+1); //adding extra dimension for x0
         Y_tmp = gsl_vector_calloc(m);
         
         for(i = 0; i < m; i++){
             fscanf(fp,"%lf",&value); //reading the target first
             gsl_vector_set(Y_tmp, i, value);
-            for(j = 0; j < n; j++){
+            gsl_matrix_set(X_tmp, i, 0, 1.0); //setting up x0 value
+            for(j = 1; j < n+1; j++){
                 fscanf(fp,"%lf",&value);
                 gsl_matrix_set(X_tmp, i, j, value); //reading input feature
             }
