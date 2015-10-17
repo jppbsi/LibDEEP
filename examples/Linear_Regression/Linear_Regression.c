@@ -41,7 +41,7 @@ int main(int argc, char **argv){
     }
 
     int i,j;
-    double alpha = atof(argv[3]), errorTRAIN;
+    double alpha = atof(argv[2]), errorTRAIN;
     gsl_matrix *X = NULL;
     gsl_vector *Y = NULL, *w = NULL;
     FILE *fp = NULL;
