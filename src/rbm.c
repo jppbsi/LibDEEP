@@ -685,7 +685,6 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
             
             gsl_vector_scale(v1, 1.0/D->size); //it averages v1
             gsl_vector_scale(vn, 1.0/D->size); //it averages vn
@@ -808,7 +807,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
                     //for each CD iteration
                     for(i = 1; i <= n_CD_iterations; i++){ 
                     
-                        // It computes the P(h=1|v1), i.e., it computes h1
+                        // It computes the P(h_n=1|h_(n-1)) -> Equation 25
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
@@ -821,7 +820,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
                         }
                         gsl_vector_free(tmp_probh1);
                     
-                        // It computes the P(v2=1|h1), i.e., it computes v2
+                        // It computes the P(h_(n-1)=1|h_n)) -> Equation 24
                         tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
@@ -829,7 +828,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
                             else gsl_vector_set(m->v, j, 0.0);
                         }
                 
-                        // It computes the P(h2=1|v2), i.e., it computes h2 (hn)
+                        // It computes the P(h_n=1|h_(n-1)) -> Equation 25
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
@@ -884,7 +883,6 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
             
             gsl_vector_scale(v1, 1.0/D->size); //it averages v1
             gsl_vector_scale(vn, 1.0/D->size); //it averages vn
@@ -1007,7 +1005,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
                     //for each CD iteration
                     for(i = 1; i <= n_CD_iterations; i++){ 
                     
-                        // It computes the P(h=1|v1), i.e., it computes h1
+                        // It computes the P(h_k=1|h_(k-1)) -> Equation 27 
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
@@ -1020,7 +1018,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
                         }
                         gsl_vector_free(tmp_probh1);
                     
-                        // It computes the P(v2=1|h1), i.e., it computes v2
+                        // It computes the P(h_(k-1)=1|h_k) -> Equation 26 
                         tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
@@ -1028,7 +1026,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
                             else gsl_vector_set(m->v, j, 0.0);
                         }
                 
-                        // It computes the P(h2=1|v2), i.e., it computes h2 (hn)
+                        // It computes the P(h_k=1|h_(k-1)) -> Equation 27 
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
@@ -1083,7 +1081,6 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            gsl_matrix_add(m->W, CDpos); // it performs W = W+W'
             
             gsl_vector_scale(v1, 1.0/D->size); //it averages v1
             gsl_vector_scale(vn, 1.0/D->size); //it averages vn
@@ -2190,7 +2187,8 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
     return h;
 }
 
-/* It computes the probability of turning on a hidden unit j considering a DBM at bottom layer */
+/* It computes the probability of turning on a hidden unit j considering a DBM at bottom layer
+using Equation 22 */
 gsl_vector *getProbabilityTurningOnHiddenUnit4DBM(RBM *m, gsl_vector *v){
     int i, j;
     gsl_vector *h = NULL;

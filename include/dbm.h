@@ -5,7 +5,6 @@
 
 #include "rbm.h"
 
-
 typedef struct _DBM{
     RBM **m;
     int n_layers;
@@ -26,7 +25,6 @@ void DBMSaveWeights(DBM *d, char *path); /* It writes the weight matrix as PGM i
 
 /* Paste DBM Parameters */
 void PasteDBMParameters(RBM *r, RBM *r2);/*  paste doubled paramns to the original size */
-
 
 double DBMReconstruction(Dataset *D, DBM *d);
 

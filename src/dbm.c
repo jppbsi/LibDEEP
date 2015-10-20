@@ -77,12 +77,12 @@ batch_size: mini-batch size
 LearningType: type of learning algorithm [1 - CD|2 - PCD|3 - FPCD] */
 double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType){
     double error;
-    int i;
-    Dataset *tmp1 = NULL;    
+    int i, j;
+    Dataset *tmp1 = NULL, *tmp2 = NULL;    
     
     tmp1 = CopyDataset(D);
     
-    for (i = 0; i<d->n_layers;i++){
+    for (i = 0; i < d->n_layers;i++){
         d->m[i]->eta = 0.1;
         d->m[i]->lambda = 0.1;
         d->m[i]->alpha = 0.001;
@@ -92,17 +92,26 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
         if(i == 0){
             fprintf(stderr,"\n Training bottom layer ... ");
             error = Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
-        }else if(i == d->n_layers - 1){
+        }else{
+	    if(i == d->n_layers - 1){
             fprintf(stderr,"\n Training top layer ... ");
             error += Bernoulli_TrainingRBMbyCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
         }else{
-            fprintf(stderr,"\n Training layer %i ... ",i);
+	    fprintf(stderr,"\n Training layer %i ... ",i);
             error += Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
         }
         fprintf(stderr,"OK");
-        
-        DestroyDataset(&tmp1);
-        tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
+	
+	/* making the hidden layer of RBM i to be the visible layer of RBM i+1 */
+	if(i < d->n_layers-1){
+	    tmp2 = CopyDataset(tmp1);
+	    DestroyDataset(&tmp1);
+	    tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
+	    tmp1->nlabels = tmp->nlabels;
+	    for(j = 0; j < tmp1->size; j++)
+	        gsl_vector_memcpy(tmp1->sample[j].feature, getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature);
+	    DestroyDataset(&tmp2);
+	}
     }
     DestroyDataset(&tmp1);
     return error;
