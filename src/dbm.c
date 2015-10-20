@@ -92,8 +92,7 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
         if(i == 0){
             fprintf(stderr,"\n Training bottom layer ... ");
             error = Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
-        }else{
-	    if(i == d->n_layers - 1){
+        }else if(i == d->n_layers - 1){
             fprintf(stderr,"\n Training top layer ... ");
             error += Bernoulli_TrainingRBMbyCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
         }else{
@@ -107,9 +106,9 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
 	    tmp2 = CopyDataset(tmp1);
 	    DestroyDataset(&tmp1);
 	    tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
-	    tmp1->nlabels = tmp->nlabels;
+	    tmp1->nlabels = D->nlabels;
 	    for(j = 0; j < tmp1->size; j++)
-	        gsl_vector_memcpy(tmp1->sample[j].feature, getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature);
+	        gsl_vector_memcpy(tmp1->sample[j].feature, getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature));
 	    DestroyDataset(&tmp2);
 	}
     }

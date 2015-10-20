@@ -24,7 +24,7 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
 void DBMSaveWeights(DBM *d, char *path); /* It writes the weight matrix as PGM images */
 
 /* Paste DBM Parameters */
-void PasteDBMParameters(RBM *r, RBM *r2);/*  paste doubled paramns to the original size */
+void PasteDBMParameters(RBM *r, RBM *r2); /*  paste doubled paramns to the original size */
 
 double DBMReconstruction(Dataset *D, DBM *d);
 
