@@ -42,36 +42,58 @@ int main(int argc, char **argv){
     }
     
     int i,j;
-    double alpha = atof(argv[3]), errorTRAIN;
-    gsl_matrix *X = NULL;
-    gsl_vector *Y = NULL, *w = NULL;
+    double alpha = atof(argv[3]), errorTRAIN, errorTEST;
+    gsl_matrix *XTrain = NULL, *XTest = NULL;
+    gsl_vector *YTrain = NULL, *YTest = NULL, *w = NULL;
     FILE *fp = NULL;
-    Subgraph *g = NULL;
+    Subgraph *gTrain = NULL, *gTest = NULL;
     
-    LoadData(argv[1], &X, &Y);
-    w = gsl_vector_alloc(X->size2);
+    LoadData(argv[1], &XTrain, &YTrain);
+    LoadData(argv[1], &XTest, &YTest);
+    w = gsl_vector_alloc(XTrain->size2);
     
-    /* mapping data to another format */
-    g = CreateSubgraph(X->size1);
-    g->nfeats = X->size2; g->nlabels = 2;
-    for(i = 0; i < X->size1; i++){
-	g->node[i].feat = AllocFloatArray(X->size2);
-	for(j = 0; j < X->size2; j++)
-	    g->node[i].feat[j] = gsl_matrix_get(X, i, j);
-	g->node[i].truelabel = gsl_vector_get(Y, i); 
+    /* mapping training data to LibOPF format */
+    gTrain = CreateSubgraph(XTrain->size1);
+    gTrain->nfeats = XTrain->size2; gTrain->nlabels = 2;
+    for(i = 0; i < XTrain->size1; i++){
+	gTrain->node[i].feat = AllocFloatArray(XTrain->size2);
+	for(j = 0; j < XTrain->size2; j++)
+	    gTrain->node[i].feat[j] = gsl_matrix_get(XTrain, i, j);
+	gTrain->node[i].truelabel = gsl_vector_get(YTrain, i); 
     }
     
-    errorTRAIN = LogisticRegression_Fitting(g, GRADIENT_DESCENT, alpha, w);
+    /* mapping testing data to LibOPF format */
+    gTest = CreateSubgraph(XTest->size1);
+    gTest->nfeats = XTest->size2; gTest->nlabels = 2;
+    for(i = 0; i < XTest->size1; i++){
+	gTest->node[i].feat = AllocFloatArray(XTest->size2);
+	for(j = 0; j < XTest->size2; j++)
+	    gTest->node[i].feat[j] = gsl_matrix_get(XTest, i, j);
+	gTest->node[i].truelabel = gsl_vector_get(YTest, i); 
+    }
+    
+    errorTRAIN = LogisticRegression_Fitting(gTrain, GRADIENT_DESCENT, alpha, w);
+    Logistic_Regression4Classification(gTest, w);
 
     fp = fopen("w_coefficients.txt", "w");
     for(i = 0; i < w->size; i++)
         fprintf(fp,"%lf ", gsl_vector_get(w, i));
     fclose(fp);
     
-    gsl_matrix_free(X);
-    gsl_vector_free(Y);
+    errorTEST = 0;
+    for(i = 0; i < XTest->size1; i++){
+        if(gTest->node[i].truelabel != gTest->node[i].label) //misclassification occurs
+            errorTEST++;
+    }
+    fprintf(stderr,"\nClassification accuracy: %.2f%%\n", (1-errorTEST/XTest->size1)*100);
+    
+    gsl_matrix_free(XTrain);
+    gsl_matrix_free(XTest);
+    gsl_vector_free(YTrain);
+    gsl_vector_free(YTest);
     gsl_vector_free(w);
-    DestroySubgraph(&g);
+    DestroySubgraph(&gTrain);
+    DestroySubgraph(&gTest);
     
     return 0;
 }
