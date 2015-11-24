@@ -45,7 +45,7 @@ int main(int argc, char **argv){
 	d = CreateDBM(gTrain->nfeats, num_hidden_layers, gTrain->nlabels);
 	InitializeDBM(d);
 	GreedyPreTrainingDBM(Train, d, n_epochs, n_samplings, batch_size, 0);
-	error = DBMReconstruction(Train, d);
+	error = BernoulliDBMReconstruction(Train, d);
 	
 	
 	

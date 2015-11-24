@@ -50,7 +50,7 @@ void InitializeDBM(DBM *d){
 
 /**************************/
 
-void PasteDBMParameters(RBM *r, RBM *r2){
+/*void PasteDBMParameters(RBM *r, RBM *r2){
 	int i,j;
 	for(i=0;i<r->n_visible_layer_neurons;i++){
 		for(j= 0;j<r->n_hidden_layer_neurons;j++){
@@ -65,7 +65,7 @@ void PasteDBMParameters(RBM *r, RBM *r2){
 		gsl_vector_set(r->b,j,gsl_vector_get(r2->b, j));	
 		gsl_vector_set(r->h,j,gsl_vector_get(r2->h, j));	
 	}	
-}
+}*/
 
 /* It performs DBM greedy pre-training step
 Parameters: [D, d, n_epochs, n_samplings, batch_size, LearningType]
@@ -101,20 +101,86 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
         }
         fprintf(stderr,"OK");
 	
-	/* making the hidden layer of RBM i to be the visible layer of RBM i+1 */
-	if(i < d->n_layers-1){
-	    tmp2 = CopyDataset(tmp1);
-	    DestroyDataset(&tmp1);
-	    tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
-	    tmp1->nlabels = D->nlabels;
-	    for(j = 0; j < tmp1->size; j++)
-	        gsl_vector_memcpy(tmp1->sample[j].feature, getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature));
-	    DestroyDataset(&tmp2);
-	}
+		/* making the hidden layer of RBM i to be the visible layer of RBM i+1 */
+		
+		if(i < d->n_layers-1){
+			tmp2 = CopyDataset(tmp1);
+			DestroyDataset(&tmp1);
+			tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
+			tmp1->nlabels = D->nlabels;
+			for(j = 0; j < tmp1->size; j++)
+			    tmp1->sample[j].feature = getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature);
+			DestroyDataset(&tmp2);
+		}
     }
     DestroyDataset(&tmp1);
     return error;
 }
+
+/* Bernoulli DBM reconstruction */
+
+/* It reconstructs an input dataset given a trained DBM */
+double BernoulliDBMReconstruction(Dataset *D, DBM *d){
+    double error = 0.0;
+    int l, i;	
+    for(i = 0; i < D->size; i++){        
+        // going up
+		gsl_vector_memcpy(d->m[0]->v, D->sample[i].feature);
+
+        for(l = 0; l < d->n_layers; l++){	
+			d->m[l]->h= getProbabilityTurningOnHiddenUnit(d->m[l], d->m[l]->v);
+                     
+            if(l < d->n_layers-1){
+				gsl_vector_memcpy(d->m[l+1]->v,d->m[l]->h);
+            }      
+        }
+        
+        //going down
+        for(l = d->n_layers-1; l > 0; l--){
+            d->m[l]->v = getProbabilityTurningOnDBMIntermediateLayersOnDownPass(d->m[l], d->m[l]->h, d->m[l-1]);
+        }
+
+		//reconstruction of the visible layer
+		gsl_vector_free(d->m[0]->v);
+        d->m[0]->v = getProbabilityTurningOnVisibleUnit(d->m[0],d->m[0]->h);
+
+        error+=getReconstructionError(D->sample[i].feature, d->m[0]->v);
+        //gsl_vector_free(v_prime);
+    }
+
+    error/=D->size;
+	fprintf(stderr,"Reconstruction error: %lf OK", error);
+    
+    return error;
+}
+
+/* It computes the probability of turning on an intermediate layer of a DBM, as show in Eq. 28 and 29  */
+gsl_vector *getProbabilityTurningOnDBMIntermediateLayersOnDownPass(RBM *m, gsl_vector *h, RBM *beneath_layer){
+    int i,j;
+    gsl_vector *inter = NULL;
+    double tmp;
+    
+    inter = gsl_vector_calloc(m->n_visible_layer_neurons);
+    
+    for(j = 0; j < m->n_visible_layer_neurons; j++){
+        tmp = 0.0;
+        for(i = 0; i < m->n_hidden_layer_neurons; i++)
+            tmp+=(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i));
+        //tmp+=gsl_vector_get(m->a, j);
+
+
+        for(i = 0; i < beneath_layer->n_visible_layer_neurons; i++)
+            tmp+=(gsl_vector_get(beneath_layer->v, i)*gsl_matrix_get(beneath_layer->W, i, j));
+        tmp+=gsl_vector_get(m->a, j);
+
+	
+        tmp = SigmoidLogistic(tmp);
+        gsl_vector_set(inter, j, tmp);
+    }
+    
+    return inter;
+}
+
 
 /*double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
     gsl_vector *h2 = NULL *h1 = NULL;
@@ -156,7 +222,7 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
         return NULL;
     }
 }*/
-
+/*
 double DBMReconstruction(Dataset *D, DBM *d){
     gsl_vector *h_prime = NULL,*h_prime0 = NULL, *v_prime = NULL, *aux = NULL;
     double error, beta;
@@ -196,11 +262,11 @@ double DBMReconstruction(Dataset *D, DBM *d){
     error/=D->size;
     fprintf(stdout,"Reconstruction error = %lf\n", error);
     return error;
-}
+}*/
 
 /* It computes the probability of turning on a hidden unit j, as described by Equation 38 - An Efficient Learning Procedure for Deep
 Boltzmann Machines */
-gsl_vector *getProbabilityTurningOnHiddenUnitDBM(RBM *rbm,RBM *next, gsl_vector *v, double beta){
+/*gsl_vector *getProbabilityTurningOnHiddenUnitDBM(RBM *rbm,RBM *next, gsl_vector *v, double beta){
     int i, j, m;
     gsl_vector *h = NULL;
     double tmp, tmpPre, tmpPos;
@@ -226,10 +292,11 @@ gsl_vector *getProbabilityTurningOnHiddenUnitDBM(RBM *rbm,RBM *next, gsl_vector 
     }
     
     return h;
-}
+}*/
 
 /* It computes the probability of turning on a hidden unit j, as described by Equation 40 - An Efficient Learning Procedure for Deep
 Boltzmann Machines */
+/*
 gsl_vector *getProbabilityTurningOnHiddenUnitDBMLastLayer(RBM *m, gsl_vector *v, double beta){
     int i, j;
     gsl_vector *h = NULL;
@@ -246,10 +313,10 @@ gsl_vector *getProbabilityTurningOnHiddenUnitDBMLastLayer(RBM *m, gsl_vector *v,
     }
     
     return h;
-}
+}*/
 
 /* It computes the probability of turning on a visible unit j, as described by Equation 41 */
-gsl_vector *getProbabilityTurningOnVisibleUnitDBMFirstLayer(RBM *m, gsl_vector *h, double beta){
+/*gsl_vector *getProbabilityTurningOnVisibleUnitDBMFirstLayer(RBM *m, gsl_vector *h, double beta){
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
@@ -267,7 +334,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnitDBMFirstLayer(RBM *m, gsl_vector *
     }
     
     return v;
-}
+}*/
 
 
 
