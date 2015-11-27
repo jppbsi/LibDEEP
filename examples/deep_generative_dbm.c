@@ -7,7 +7,7 @@ int main(int argc, char **argv){
 	gsl_vector *num_hidden_layers = NULL;
 	DBM *d = NULL;
   	float value;
-	double error;
+	double error = 0.0;
   	char fileName[256];
   	FILE *f = NULL;
 
@@ -47,52 +47,9 @@ int main(int argc, char **argv){
 	GreedyPreTrainingDBM(Train, d, n_epochs, n_samplings, batch_size, 0);
 	error = BernoulliDBMReconstruction(Train, d);
 	
-	
-	
-	//error = DBMReconstruction(Train, d);
-	//fprintf(stdout,"\nErro reconstrucao no treinamento= %f\n",erro);
-
-/*	//erro pre treino
-	error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, n_epochs, n_CD_iterations, batch_size);
-	fprintf(stdout,"\nErro pre treino = %lf",erro);
-	//erro validacao
-	error = DBMReconstruction(D, d);	
-	fprintf(stdout,"\nErro reconstrucao = %lf",erro);
-	//error = GreedyPreTrainingAlgorithmForADeepBoltzmannMachine(training_ds, d, 45, 1, 20);
-
-
-
-
-	//Dataset *testing_ds = Subgraph2Dataset(ReadSubgraph(argv[2]));
-
-	//op = atoi(argv[3]);
-
-	//opf_BestkMinCut(g,1,atoi(argv[2])); //default kmin = 1
-
-	//value = atof(argv[4]);
-	
-
-	fprintf(stdout, "\n\nClustering by OPF ");
-	opf_OPFClustering(g);
-	printf("num of clusters %d\n",g->nlabels);
-
-	fprintf(stdout, "\nWriting classifier's model file ..."); fflush(stdout);
-	opf_WriteModelFile(g, "classifier.opf");
-	fprintf(stdout, " OK"); fflush(stdout);
-
-	fprintf(stdout, "\nWriting output file ..."); fflush(stdout);
-	sprintf(fileName,"%s.out",argv[1]);
-	f = fopen(fileName,"w");
-	for (i = 0; i < g->nnodes; i++)
-		fprintf(f,"%d\n",g->node[i].label);
-	fclose(f);
-	fprintf(stdout, " OK"); fflush(stdout);
-
-	fprintf(stdout, "\n\nDeallocating memory ...\n");*/
 	DestroyDBM(&d);
 	DestroyDataset(&Train); DestroyDataset(&Test);
 	DestroySubgraph(&gTrain); DestroySubgraph(&gTest);
-	//DestroyDataset(&testing_ds);
 	gsl_vector_free(num_hidden_layers);
 
 	return 0;

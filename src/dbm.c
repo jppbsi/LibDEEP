@@ -76,9 +76,10 @@ n_samplings: number of samplings
 batch_size: mini-batch size
 LearningType: type of learning algorithm [1 - CD|2 - PCD|3 - FPCD] */
 double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType){
-    double error;
-    int i, j;
-    Dataset *tmp1 = NULL, *tmp2 = NULL;    
+    double error = 0.0,aux = 0.0;
+    int i, j, k, l;
+    Dataset *tmp1 = NULL, *tmp2 = NULL;   
+ 
     
     tmp1 = CopyDataset(D);
     
@@ -108,12 +109,24 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
 			DestroyDataset(&tmp1);
 			tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
 			tmp1->nlabels = D->nlabels;
-			for(j = 0; j < tmp1->size; j++)
-			    tmp1->sample[j].feature = getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature);
+			for(j = 0; j < tmp1->size; j++){
+				//----alterei
+		        for(k = 0; k < tmp1->nfeatures; k++){
+		            aux = 0.0;
+					for(l = 0; l < tmp2->nfeatures; l++)
+						aux+=(gsl_vector_get(tmp2->sample[j].feature, l)*gsl_matrix_get(d->m[i]->W, l, k)+gsl_vector_get(tmp2->sample[j].feature, l)*gsl_matrix_get(d->m[i]->W, l, k));
+					
+					aux+=gsl_vector_get(d->m[i]->b, k);
+					gsl_vector_set(tmp1->sample[j].feature, k, SigmoidLogistic(aux));
+				}
+				//fim alteracao
+			    //gsl_vector_memcpy(tmp1->sample[j].feature,getProbabilityTurningOnHiddenUnit4DBM(d->m[i], tmp2->sample[j].feature));
+			}
 			DestroyDataset(&tmp2);
 		}
     }
-    DestroyDataset(&tmp1);
+	DestroyDataset(&tmp1);
+    
     return error;
 }
 
@@ -125,24 +138,30 @@ double BernoulliDBMReconstruction(Dataset *D, DBM *d){
     int l, i;	
     for(i = 0; i < D->size; i++){        
         // going up
+		gsl_vector_free(d->m[0]->v);
+		d->m[0]->v = gsl_vector_alloc(d->m[0]->n_visible_layer_neurons);
 		gsl_vector_memcpy(d->m[0]->v, D->sample[i].feature);
 
         for(l = 0; l < d->n_layers; l++){	
-			d->m[l]->h= getProbabilityTurningOnHiddenUnit(d->m[l], d->m[l]->v);
+			gsl_vector_free(d->m[l]->h);
+			d->m[l]->h = getProbabilityTurningOnHiddenUnit(d->m[l], d->m[l]->v);
                      
             if(l < d->n_layers-1){
+				gsl_vector_free(d->m[l+1]->v);
+				d->m[l+1]->v = gsl_vector_alloc(d->m[l+1]->n_visible_layer_neurons);
 				gsl_vector_memcpy(d->m[l+1]->v,d->m[l]->h);
             }      
         }
         
         //going down
         for(l = d->n_layers-1; l > 0; l--){
+			gsl_vector_free(d->m[l]->v);
             d->m[l]->v = getProbabilityTurningOnDBMIntermediateLayersOnDownPass(d->m[l], d->m[l]->h, d->m[l-1]);
         }
 
 		//reconstruction of the visible layer
 		gsl_vector_free(d->m[0]->v);
-        d->m[0]->v = getProbabilityTurningOnVisibleUnit(d->m[0],d->m[0]->h);
+        d->m[0]->v= getProbabilityTurningOnVisibleUnit(d->m[0],d->m[0]->h);
 
         error+=getReconstructionError(D->sample[i].feature, d->m[0]->v);
         //gsl_vector_free(v_prime);
@@ -166,8 +185,7 @@ gsl_vector *getProbabilityTurningOnDBMIntermediateLayersOnDownPass(RBM *m, gsl_v
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
             tmp+=(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i));
-        //tmp+=gsl_vector_get(m->a, j);
-
+        tmp+=gsl_vector_get(m->a, j);
 
         for(i = 0; i < beneath_layer->n_visible_layer_neurons; i++)
             tmp+=(gsl_vector_get(beneath_layer->v, i)*gsl_matrix_get(beneath_layer->W, i, j));
