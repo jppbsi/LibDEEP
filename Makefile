@@ -9,7 +9,7 @@ CC=gcc
 FLAGS=  -g -O0
 CFLAGS=''
 
-all: libDeep deep_generative_dbm
+all: libDeep deep_generative_dbm deep_generative_dbn
 
 libDeep: $(LIB)/libDeep.a
 	echo "libDeep.a built..."
@@ -23,6 +23,7 @@ $(OBJ)/dbn.o \
 $(OBJ)/regression.o \
 $(OBJ)/logistic.o \
 $(OBJ)/dbm.o \
+$(OBJ)/dbn.o \
 
 	ar csr $(LIB)/libDeep.a \
 $(OBJ)/deep.o \
@@ -33,6 +34,7 @@ $(OBJ)/dbn.o \
 $(OBJ)/regression.o \
 $(OBJ)/logistic.o \
 $(OBJ)/dbm.o \
+$(OBJ)/dbn.o \
 
 $(OBJ)/deep.o: $(SRC)/deep.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/deep.c \
@@ -69,6 +71,10 @@ $(OBJ)/dbm.o: $(SRC)/dbm.c
 deep_generative_dbm:
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_generative_dbm.c \
 	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_generative_dbm   -lm 
+
+deep_generative_dbn:
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_generative_dbn.c \
+	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_generative_dbn   -lm 
 
 clean:
 	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o rm -f $(BIN)/*

@@ -14,7 +14,7 @@ DBM *CreateDBM(int n_visible_layer_neurons,  gsl_vector *n_hidden_units, int n_l
     //only the first layer has the number of visible inputs equals to the number of features
     d->m[0] = CreateRBM(n_visible_layer_neurons, (int)gsl_vector_get(n_hidden_units, 0), n_labels);
     for(i = 1; i < d->n_layers; i++)
-	d->m[i] = CreateRBM((int)gsl_vector_get(n_hidden_units, i-1), (int)gsl_vector_get(n_hidden_units, i), n_labels);
+		d->m[i] = CreateRBM((int)gsl_vector_get(n_hidden_units, i-1), (int)gsl_vector_get(n_hidden_units, i), n_labels);
     
     return d;
 }
@@ -48,24 +48,6 @@ void InitializeDBM(DBM *d){
     }
 }
 
-/**************************/
-
-/*void PasteDBMParameters(RBM *r, RBM *r2){
-	int i,j;
-	for(i=0;i<r->n_visible_layer_neurons;i++){
-		for(j= 0;j<r->n_hidden_layer_neurons;j++){
-			//set W
-			gsl_matrix_set(r->W,i,j,gsl_matrix_get(r2->W, i, j));					
-		}
-		//set a
-		gsl_vector_set(r->a,i,gsl_vector_get(r2->a, i));	
-		gsl_vector_set(r->v,i,gsl_vector_get(r2->v, i));	
-	}
-	for(j= 0;j<r->n_hidden_layer_neurons;j++){
-		gsl_vector_set(r->b,j,gsl_vector_get(r2->b, j));	
-		gsl_vector_set(r->h,j,gsl_vector_get(r2->h, j));	
-	}	
-}*/
 
 /* It performs DBM greedy pre-training step
 Parameters: [D, d, n_epochs, n_samplings, batch_size, LearningType]
@@ -97,7 +79,7 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
             fprintf(stderr,"\n Training top layer ... ");
             error += Bernoulli_TrainingRBMbyCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
         }else{
-	    fprintf(stderr,"\n Training layer %i ... ",i);
+	    fprintf(stderr,"\n Training layer %i ... ",i+1);
             error += Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
         }
         fprintf(stderr,"OK");

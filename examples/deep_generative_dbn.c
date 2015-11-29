@@ -5,13 +5,13 @@ int main(int argc, char **argv){
 	Dataset *Train = NULL, *Test = NULL;
 	Subgraph *gTrain = NULL, *gTest = NULL;
 	gsl_vector *num_hidden_layers = NULL;
-	DBM *d = NULL;
+	DBN *d = NULL;
   	float value;
 	double error = 0.0;
   	char fileName[256];
   	FILE *f = NULL;
 
-	fprintf(stdout, "\nProgram that computes generative learning by Deep Boltzmann Machine\n");
+	fprintf(stdout, "\nProgram that computes generative learning by Deep Belief Networks\n");
 	fprintf(stdout, "\nIf you have any problem, please contact: ");
 	fprintf(stdout, "\n- leandropassosjr@gmail.com");
 	fprintf(stdout, "\n- papa.joaopaulo@gmail.com\n");
@@ -42,13 +42,13 @@ int main(int argc, char **argv){
 		gsl_vector_set(num_hidden_layers, i, atoi(argv[7+i]));
 	fprintf(stderr,"OK");
 	
-	d = CreateDBM(gTrain->nfeats, num_hidden_layers, gTrain->nlabels);
-	InitializeDBM(d);
-	GreedyPreTrainingDBM(Train, d, n_epochs, n_samplings, batch_size, 0);
-	error = BernoulliDBMReconstruction(Test, d);
-	fprintf(stderr,"    -> Total DBM Reconstruction error for Test Set: %lf", error);
+	d = CreateDBN(gTrain->nfeats, num_hidden_layers, gTrain->nlabels, num_hidden_layers->size);
+	InitializeDBN(d);
+	BernoulliDBNTrainingbyContrastiveDivergence(Train, d, n_epochs, n_samplings, batch_size);
+	error = BernoulliDBNReconstruction(Test, d);
+	fprintf(stderr,"    -> Total DBN Reconstruction error for Test Set: %lf", error);
 	
-	DestroyDBM(&d);
+	DestroyDBN(&d);
 	DestroyDataset(&Train); DestroyDataset(&Test);
 	DestroySubgraph(&gTrain); DestroySubgraph(&gTest);
 	gsl_vector_free(num_hidden_layers);
