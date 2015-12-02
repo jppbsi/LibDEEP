@@ -66,11 +66,6 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
     tmp1 = CopyDataset(D);
     
     for (i = 0; i < d->n_layers;i++){
-        d->m[i]->eta = 0.1;
-        d->m[i]->lambda = 0.1;
-        d->m[i]->alpha = 0.001;
-        d->m[i]->eta_min = 0.1;
-        d->m[i]->eta_max = 0.9;
         
         if(i == 0){
             fprintf(stderr,"\n Training bottom layer ... ");

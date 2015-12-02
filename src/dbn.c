@@ -117,11 +117,6 @@ double BernoulliDBNTrainingbyContrastiveDivergence(Dataset *D, DBN *d, int n_epo
     tmp1 = CopyDataset(D);
     
     for(id = 0; id < d->n_layers; id++){
-        d->m[id]->eta = 0.1;
-        d->m[id]->lambda = 0.1;
-        d->m[id]->alpha = 0.001;
-        d->m[id]->eta_min = 0.1;
-        d->m[id]->eta_max = 0.9;
 	    fprintf(stderr,"\nTraining layer %i ... ", id+1);
 	    error = BernoulliRBMTrainingbyContrastiveDivergence(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size);
 	    
