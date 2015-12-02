@@ -477,8 +477,8 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
 	    plsum = plsum + pl/ctr;
         
             /* it updates RBM parameters ****/
-            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
-            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
             gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
             gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
             gsl_matrix_scale(tmpW, m->alpha); // it performs W' = alpha*W' (momentum)
@@ -488,16 +488,16 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
-            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_scale(v1, 1.0/batch_size; //it averages v1
+            gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
     
-            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
-            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+            gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
             gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
             gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
@@ -675,8 +675,8 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
 	    plsum = plsum + pl/ctr;
         
             /* it updates RBM parameters ****/
-            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
-            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
             gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
             gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
             gsl_matrix_scale(tmpW, m->alpha); // it performs W' = alpha*W' (momentum)
@@ -686,16 +686,16 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
-            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
+            gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
     
-            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
-            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+            gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
             gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
             gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
@@ -873,8 +873,8 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
 	    plsum = plsum + pl/ctr;
         
             /* it updates RBM parameters ****/
-            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
-            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
             gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
             gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
             gsl_matrix_scale(tmpW, m->alpha); // it performs W' = alpha*W' (momentum)
@@ -884,16 +884,16 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
-            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
+            gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
     
-            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
-            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+            gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
             gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
             gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
@@ -1071,8 +1071,8 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
 	    plsum = plsum + pl/ctr;
         
             /* it updates RBM parameters ****/
-            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
-            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
             gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
             gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
             gsl_matrix_scale(tmpW, m->alpha); // it performs W' = alpha*W' (momentum)
@@ -1082,16 +1082,16 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
-            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
+            gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
     
-            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
-            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+            gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
             gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
             gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
@@ -1277,8 +1277,8 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
 	    plsum = plsum + pl/ctr;
         
             /* it updates RBM parameters ****/
-            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
-            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
             gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
             gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
             gsl_matrix_scale(tmpW, m->alpha); // it performs W' = alpha*W' (momentum)
@@ -1288,16 +1288,16 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
-            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
+            gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
     
-            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
-            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+            gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
             gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
             gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
@@ -1491,8 +1491,8 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
 	    plsum = plsum + pl/ctr;
         
             /* it updates regular weights ****/
-            gsl_matrix_scale(CDpos, 1.0/D->size); //it averages CDpos
-            gsl_matrix_scale(CDneg, 1.0/D->size); //it averages CDneg
+            gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
+            gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
             gsl_matrix_sub(CDpos, CDneg); //it performs CDpos-CDneg
 	    gsl_matrix_memcpy(g, CDpos); //it copies the gradient to be used in the fast weights computation
             gsl_matrix_scale(CDpos, m->eta); // it performs eta*(CDpos-CDneg)
@@ -1503,16 +1503,16 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/D->size); //it averages v1
-            gsl_vector_scale(vn, 1.0/D->size); //it averages vn
+            gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
+            gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
     
-            gsl_vector_scale(ctr_probh1, 1.0/D->size); //it averages P(h1 = 1|v1)
-            gsl_vector_scale(ctr_probhn, 1.0/D->size); //it averages P(h2 = 1|v2)
+            gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
+            gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
             gsl_vector_sub(ctr_probh1, ctr_probhn); //it performs P(h1 = 1|v1) - P(h2 = 1|v2)
             gsl_vector_scale(ctr_probh1, m->eta); //it performs eta*(P(h1 = 1|v1) - P(h2 = 1|v2))
