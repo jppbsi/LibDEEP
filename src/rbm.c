@@ -488,7 +488,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
             
-            gsl_vector_scale(v1, 1.0/batch_size; //it averages v1
+            gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
             gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
             gsl_vector_scale(v1, m->eta); //it performs eta*(v1-vn)
