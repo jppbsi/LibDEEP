@@ -139,6 +139,11 @@ double BernoulliDBMReconstruction(Dataset *D, DBM *d){
         for(l = d->n_layers-1; l > 0; l--){
 			gsl_vector_free(d->m[l]->v);
             d->m[l]->v = getProbabilityTurningOnDBMIntermediateLayersOnDownPass(d->m[l], d->m[l]->h, d->m[l-1]);
+            if(l >0){
+				gsl_vector_free(d->m[l-1]->h);
+				d->m[l-1]->h = gsl_vector_alloc(d->m[l-1]->n_hidden_layer_neurons);
+				gsl_vector_memcpy(d->m[l-1]->h,d->m[l]->v);
+            }  
         }
 
 		//reconstruction of the visible layer
