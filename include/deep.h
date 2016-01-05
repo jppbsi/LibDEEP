@@ -35,6 +35,7 @@ extern "C" {
 #include "regression.h"
 #include "logistic.h"
 #include "dbm.h"
+#include "epnn.h"
 
 #ifdef __cplusplus
 }
