@@ -1,10 +1,11 @@
 #include "epnn.h"
 
+
 // Enhanced probabilistic neural network with local decision circles based on the Parzen-window estimation
 // ==================================================================================================
-void EPNN(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_vector  *nsample4class, gsl_vector *alpha)
+void EPNN(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_vector  *nsample4class, gsl_vector *alpha, gsl_vector *nGaussians)
 {	
-	double sum[Train->nlabels+1], prob, norm; 
+	double sum[(int)gsl_vector_get(nGaussians,0)+1], prob, norm; 
 	int i=0, j, k, l, aux;
 	
 	// The INPUT layer
@@ -13,7 +14,7 @@ void EPNN(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_
 		prob = 0.0; 
 		aux = 0;
 		
-		for (l=1; l<=Train->nlabels; l++ ) 
+		for (l=1; l<=(int)gsl_vector_get(nGaussians,0); l++ ) 
 		{
 			sum[l] = 0.0;
 			// The SUMMATION layer which accumulates the pdf
@@ -35,11 +36,11 @@ void EPNN(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_
 		} 
 
 		// The DECISION layer
-		for (l=1; l<=Train->nlabels; l++ ){
+		for (l=1; l <= (int)gsl_vector_get(nGaussians,0); l++ ){
 			if ( sum[l] > prob ) 
 			{
 				prob = sum[l]; 
-				Test->node[k].label = l;
+				Test->node[k].label = (int)gsl_vector_get(nGaussians,l);
 			}
 			
 		}
@@ -63,6 +64,24 @@ double MaxDistance(Subgraph *graph){
         }
     }
     return  maxRadius;
+}
+
+// Minimum Euclidian Distance of training data pairs
+// ==================================================================================================
+double MinDistance(Subgraph *graph){
+    
+    double minRadius = FLT_MAX, dist;
+    int i, j;
+	
+    for(i = 0; i < graph->nnodes; i++){
+        for(j = 0; j < graph->nnodes; j++){
+            if(j != i){
+                dist = opf_EuclDist(graph->node[i].feat, graph->node[j].feat, graph->nfeats);
+                if(dist < minRadius) minRadius = dist;
+            }
+        }
+    }
+    return  minRadius;
 }
 
 // It calculates the hyper-sphere with radius r for each training node
@@ -98,20 +117,34 @@ gsl_vector *HyperSphere(Subgraph *graph, double radius){
 
 // Ordered List Label
 // ==================================================================================================
-gsl_vector *OrderedListLabel(Subgraph *Train)
+gsl_vector *OrderedListLabel(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root)
 {
-	int i=0, j, l;
+	int i = 0, j, l;
 
     //Allocating lNode matrix
 	//Ordered list by label
 	gsl_vector *lNode = gsl_vector_calloc(Train->nnodes); 
 	
-	for(l = 1; l <= Train->nlabels; l++ ){
-		for(j = 0; j < Train->nnodes; j++ ){
-			if(Train->node[j].truelabel == l){
+	//Unlabeled training set
+	if(Train->nlabels != (int)gsl_vector_get(nGaussians,0)){
+		for(l = 0; l < (int)gsl_vector_get(nGaussians,0); l++ ){		
+			for(j = 0; j < Train->nnodes; j++ ){
+				if(Train->node[j].root ==  (int)gsl_vector_get(root,l)){
 					gsl_vector_set(lNode,i,j);
-					i++;
-			} 
+					i++;		
+				}
+			}
+		}
+	}
+	//Labeled training set
+	else{
+		for(l = 1; l <= Train->nlabels; l++ ){
+			for(j = 0; j < Train->nnodes; j++ ){
+				if(Train->node[j].truelabel == l){
+						gsl_vector_set(lNode,i,j);
+						i++;
+				} 
+			}
 		}
 	}
 	
@@ -121,21 +154,50 @@ gsl_vector *OrderedListLabel(Subgraph *Train)
 
 // Count classes
 // ==================================================================================================
-gsl_vector *CountClasses(Subgraph *Train)
+gsl_vector *CountClasses(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root)
+{
+	int i, l;
+	gsl_vector *nsample4class = gsl_vector_calloc((int)gsl_vector_get(nGaussians,0)+1); 
+	
+	if(Train->nlabels != (int)gsl_vector_get(nGaussians,0)){
+		
+		for(i = 0; i < Train->nnodes; i++){
+			for(l = 0; l < (int)gsl_vector_get(nGaussians,0); l++ ){
+				if(Train->node[i].root ==  (int)gsl_vector_get(root,l)){
+					gsl_vector_set(nsample4class,l+1, gsl_vector_get(nsample4class,l+1)+1);
+					break;
+				}
+			}
+			
+		}
+	}
+	else{
+		for(i = 0; i < Train->nnodes; i++) gsl_vector_set(nsample4class, Train->node[i].truelabel, gsl_vector_get(nsample4class,Train->node[i].truelabel)+1);
+	}
+	return nsample4class;
+}
+
+
+// Loading labels in training set
+// ==================================================================================================
+gsl_vector *LoadLabels(Subgraph *Train)
 {
 	int i;
-	gsl_vector *nsample4class = gsl_vector_calloc(Train->nlabels+1); 
+	gsl_vector *nGaussians = gsl_vector_calloc(Train->nlabels+1); 
 	
-	for(i = 0; i < Train->nnodes; i++) gsl_vector_set(nsample4class, Train->node[i].truelabel, gsl_vector_get(nsample4class,Train->node[i].truelabel)+1);
+	gsl_vector_set(nGaussians, 0, Train->nlabels); //Allocating number of labels
 	
-	return nsample4class;
+	for(i = 1; i <= Train->nlabels; i++) gsl_vector_set(nGaussians, i, i);
+	
+	return nGaussians;
 }
 
 
 // Learn best parameters (sigma and radius) in evalutaing set
 // ==================================================================================================
-gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius){  
-    double rstep = maxRadius/step, learnVar = 0.0;
+gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians){  
+	
+    double rstep = sqrt(maxRadius+minRadius)/step, learnVar = 0.0;
 	float acc, bestAcc = -1.0;
 	
 	gsl_vector *alpha = HyperSphere(Train, 0);
@@ -144,7 +206,7 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 	
     while(learnVar <= 1){
         fprintf(stdout,"\nTrying sigma %lf ", learnVar);	
-		EPNN(Train, Eval, learnVar, lNode, nsample4class, alpha);
+		EPNN(Train, Eval, learnVar, lNode, nsample4class, alpha, nGaussians);
 		acc = opf_Accuracy(Eval);
 		fprintf(stdout,"Accuracy: %f", acc*100);
         if(acc > bestAcc){
@@ -158,11 +220,11 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 	
 	bestAcc = -1;
 	learnVar = 0.0;
-    while(learnVar <= maxRadius){   
+    while(learnVar <= (maxRadius+minRadius)/2){   
         fprintf(stdout,"\nTrying Radius %lf ", learnVar);
 		gsl_vector_free(alpha);
 		alpha = HyperSphere(Train, learnVar);	
-		EPNN(Train, Eval, gsl_vector_get(BestParameters,0), lNode, nsample4class, alpha);
+		EPNN(Train, Eval, gsl_vector_get(BestParameters,0), lNode, nsample4class, alpha, nGaussians);
         acc = opf_Accuracy(Eval);
 		fprintf(stdout,"Accuracy: %f", acc*100);
         if(acc > bestAcc){
@@ -177,4 +239,3 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 	
     return BestParameters; 
 }
-

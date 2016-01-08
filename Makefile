@@ -38,6 +38,7 @@ $(OBJ)/dbm.o \
 $(OBJ)/dbn.o \
 $(OBJ)/epnn.o \
 
+
 $(OBJ)/deep.o: $(SRC)/deep.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/deep.c \
 	-L /usr/local/lib -L $(OPF_DIR)/lib -lOPF -lgsl -lgslcblas -o $(OBJ)/deep.o `pkg-config --cflags --libs gsl`
@@ -86,6 +87,8 @@ deep_generative_dbn:
 deep_epnn:
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_epnn.c \
 	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_epnn   -lm 
+
+
 
 clean:
 	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o rm -f $(BIN)/*
