@@ -22,11 +22,11 @@ Options:\n\
 	Too large deviations smooth out details.\n\
 	Default: 0.3.\n\
 	\n\
-	-r (radius): Set 1 to use Hyper-Sphere in Enhanced Probabilistic Neural Network.\n\
-	For only Probabilistic Neural Network set radius = 0. Default: 0.\n\
+	-r (radius): Set r > 0 to use Hyper-Sphere in Enhanced Probabilistic Neural Network.\n\
+	For only Probabilistic Neural Network set r = 0. Default: 0.\n\
  	\n\
  	-g (gaussians): Set 1 for learning of gaussians from training file.\n\
-	By default is given as the number of labels of the training set, or 'g 0' as parameter. \n\
+	By default is given as the number of labels of the training set, or 'g = 0' as parameter. \n\
 	For learning gaussians is required parameters of OPF_CLUSTER.\n\
 	Parameters for OPF_CLUSTER:\n\
 	-k (kmax): maximum degree for the knn graph\n\
