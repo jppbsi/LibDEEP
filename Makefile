@@ -9,7 +9,7 @@ CC=gcc
 FLAGS=  -O3 -Wall
 CFLAGS=''
 
-all: libDeep deep_generative_dbm deep_generative_dbn deep_epnn
+all: libDeep deep_epnn
 
 libDeep: $(LIB)/libDeep.a
 	echo "libDeep.a built..."
@@ -75,14 +75,6 @@ $(OBJ)/epnn.o: $(SRC)/epnn.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/epnn.c \
 	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/epnn.o `pkg-config --cflags --libs gsl`
 
-
-deep_generative_dbm:
-	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_generative_dbm.c \
-	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_generative_dbm   -lm 
-
-deep_generative_dbn:
-	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_generative_dbn.c \
-	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_generative_dbn   -lm 
 
 deep_epnn:
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_epnn.c \
