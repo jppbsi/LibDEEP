@@ -1,15 +1,12 @@
 #include "deep.h"
 
 int main(int argc, char **argv){
-  	int i,n, n_epochs,n_samplings, batch_size;
+  	int i,n_epochs,n_samplings, batch_size;
 	Dataset *Train = NULL, *Test = NULL;
 	Subgraph *gTrain = NULL, *gTest = NULL;
 	gsl_vector *num_hidden_layers = NULL;
 	DBN *d = NULL;
-  	float value;
 	double error = 0.0;
-  	char fileName[256];
-  	FILE *f = NULL;
 
 	fprintf(stdout, "\nProgram that computes generative learning by Deep Belief Networks\n");
 	fprintf(stdout, "\nIf you have any problem, please contact: ");

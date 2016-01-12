@@ -41,11 +41,11 @@ $(OBJ)/epnn.o \
 
 $(OBJ)/deep.o: $(SRC)/deep.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/deep.c \
-	-L /usr/local/lib -L $(OPF_DIR)/lib -lgsl -lgslcblas -o $(OBJ)/deep.o `pkg-config --cflags --libs gsl`
+	-L /usr/local/lib -L $(OPF_DIR)/lib -lOPF -lgsl -lgslcblas -o $(OBJ)/deep.o `pkg-config --cflags --libs gsl`
 
 $(OBJ)/math_functions.o: $(SRC)/math_functions.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/math_functions.c \
-	-L $(OPF_DIR)/lib -o $(OBJ)/math_functions.o `pkg-config --cflags --libs gsl`
+	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/math_functions.o `pkg-config --cflags --libs gsl`
 
 $(OBJ)/rbm.o: $(SRC)/rbm.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/rbm.c \
