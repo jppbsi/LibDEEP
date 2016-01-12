@@ -9,7 +9,7 @@ w: learned parameters of the model
 ---
 Output: mean squared error */
 double Linear_Regression(Subgraph *g, gsl_vector *w){
-    double MSE, tmp, h_w, y;
+    double MSE, h_w, y;
     gsl_vector *x = NULL;
     int i, m = g->nnodes, n = g->nfeats-1;
     
@@ -40,7 +40,7 @@ j: ID of the feature
 ---
 Output: cost */
 double Linear_RegressionPartialDerivative(Subgraph *g, gsl_vector *w, int j){
-    double partial_derivative_value, tmp, h_w, y, x_j;
+    double partial_derivative_value, h_w, y, x_j;
     gsl_vector *x = NULL;
     int i, n = g->nfeats-1;
     

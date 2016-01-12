@@ -36,7 +36,7 @@ void DestroyDBM(DBM **d){
 
 /* It initializes a DBM */
 void InitializeDBM(DBM *d){
-    int i,j;
+    int i;
     srand(time(NULL));
     
     for(i = 0; i < d->n_layers; i++){

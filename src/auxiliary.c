@@ -264,7 +264,6 @@ Dataset *Subgraph2Dataset(Subgraph *g){
 /* It converts an integer to a set of bits Ex: for a 3-bit representation, if label = 2, output = 010 */
 gsl_vector *label2binary_gsl_vector(int l, int n_bits){
     gsl_vector *y = NULL;
-    int i;
     
     y = gsl_vector_calloc(n_bits);
     gsl_vector_set_zero(y);

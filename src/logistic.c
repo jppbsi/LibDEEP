@@ -10,7 +10,7 @@ Y: target values
 ---
 Output: error */
 double Logistic_Regression(Subgraph *g, gsl_vector *w){
-    double error, tmp, h_w;
+    double error, h_w;
     gsl_vector *x = NULL;
     int i;
     
@@ -40,7 +40,7 @@ j: ID of the feature
 ---
 Output: cost */
 double Logistic_RegressionPartialDerivative(Subgraph *g, gsl_vector *w, int j){
-    double partial_derivative_value, tmp;
+    double partial_derivative_value;
     gsl_vector *x = NULL;
     int i;
     

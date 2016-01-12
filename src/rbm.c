@@ -4,7 +4,6 @@
 /* It allocates an RBM */
 RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_labels){
     RBM *m = NULL;
-    int i;
     
     m = (RBM *)malloc(sizeof(RBM));
     if(!m){
@@ -2402,7 +2401,7 @@ h: array of hidden units */
 gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit(RBM *m, gsl_vector *h){
     gsl_vector *v = NULL;
     int i, j;
-    double tmp, aux;
+    double tmp;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
     
@@ -2429,7 +2428,7 @@ gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit
 
 /* It computes the probability of label unit (y) given the hidden (h) one, i.e., P(y|h) */
 gsl_vector *getDiscriminativeProbabilityLabelUnit(RBM *m){
-    int i, j, k;
+    int j, k;
     double den = 0.0, tmp;
     gsl_vector *y = NULL;
     
