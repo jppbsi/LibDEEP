@@ -225,44 +225,48 @@ double BernoulliDBNReconstruction(Dataset *D, DBN *d){
     gsl_vector *h_prime = NULL, *v_prime = NULL, *aux = NULL;
     double error = 0.0;
     int l, i;
-    
-    for(i = 0; i < D->size; i++){        
-        // going up
+
+    for(i = 0; i < D->size; i++){
+        //going up
         aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
         gsl_vector_memcpy(aux, D->sample[i].feature);
-        
+
+
         for(l = 0; l < d->n_layers; l++){
-            h_prime = getProbabilityTurningOnHiddenUnit(d->m[l], aux);
-            gsl_vector_free(aux);
             
+	    h_prime = getProbabilityTurningOnHiddenUnit(d->m[l], aux);
+            gsl_vector_free(aux);
+
             if(l < d->n_layers-1){
                 aux = gsl_vector_calloc(d->m[l+1]->n_visible_layer_neurons);
                 gsl_vector_memcpy(aux, h_prime);
+                gsl_vector_free(h_prime);
             }
-            
-            gsl_vector_free(h_prime);
+
         }
-        
-        //going down
+
         aux = gsl_vector_calloc(d->m[l-1]->n_hidden_layer_neurons);
-        gsl_vector_memcpy(aux, d->m[l-1]->h);
+        gsl_vector_memcpy(aux, h_prime);
+
         for(l = d->n_layers-1; l >= 0; l--){
             v_prime = getProbabilityTurningOnVisibleUnit(d->m[l], aux);
             gsl_vector_free(aux);
-            
+
             if(l > 0){
                 aux = gsl_vector_calloc(d->m[l-1]->n_hidden_layer_neurons);
                 gsl_vector_memcpy(aux, v_prime);
                 gsl_vector_free(v_prime);
             }
         }
-        
+
+
         error+=getReconstructionError(D->sample[i].feature, v_prime);
         gsl_vector_free(v_prime);
+        gsl_vector_free(h_prime);
     }
 
     error/=D->size;
-    
+
     return error;
 }
 
