@@ -199,6 +199,7 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 	
     double rstep = sqrt(maxRadius+minRadius)/step, learnVar = 0.0;
 	float acc, bestAcc = -1.0;
+	int i=0;
 	
 	gsl_vector *alpha = HyperSphere(Train, 0);
 	
@@ -220,8 +221,8 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 	
 	bestAcc = -1;
 	learnVar = 0.0;
-    while(learnVar <= (maxRadius+minRadius)/2){   
-        fprintf(stdout,"\nTrying Radius %lf ", learnVar);
+    while(i < step){   
+        fprintf(stdout,"\nTrying Radius %i of %i: %lf ", i+1, step, learnVar);
 		gsl_vector_free(alpha);
 		alpha = HyperSphere(Train, learnVar);	
 		EPNN(Train, Eval, gsl_vector_get(BestParameters,0), lNode, nsample4class, alpha, nGaussians);
@@ -231,7 +232,8 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 			gsl_vector_set(BestParameters,1,learnVar);
             bestAcc = acc;
         }
-        learnVar += rstep;  
+        learnVar += rstep;
+		i++;
     }
 	fprintf(stdout,"\nBest radius = %lf\n", gsl_vector_get(BestParameters,1)); fflush(stdout);
 	
