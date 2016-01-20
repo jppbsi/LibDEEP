@@ -283,7 +283,7 @@ int main(int argc, char **argv){
     fflush(stdout);
 	sprintf(fileName,"%s.parameters.out",argv[train_set]);
     f = fopen(fileName, "w");
-	if(kmax > 0) fprintf(f,"%i\n",kmax);
+	if(kmax > 0) fprintf(f,"%i\n", kmax);
 	fprintf(f,"%lf\n",sigma);
 	fprintf(f,"%lf\n",radius);
     fclose(f);
