@@ -241,3 +241,46 @@ gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_v
 	
     return BestParameters; 
 }
+
+
+// Grid-search (sigma and radius) in evalutaing set
+// ==================================================================================================
+gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians){  
+	
+    double sigma=-0.05, radius;
+	float acc, bestAcc = -1.0;
+	
+	gsl_vector *alpha = HyperSphere(Train, 0);
+	
+	gsl_vector *BestParameters = gsl_vector_calloc(2);
+	
+	
+	for( ; sigma <= 1.0;  ){
+		sigma+=0.05;
+		for(radius = 0.0000001; radius <= (maxRadius+minRadius)/2; radius+=(minRadius+(radius*2))){
+			fprintf(stdout,"\nTrying sigma: %lf and radius: %lf", sigma, radius); fflush(stdout);
+
+			gsl_vector_free(alpha);
+			alpha = HyperSphere(Train, radius);
+
+			EPNN(Train, Eval, sigma, lNode, nsample4class, alpha, nGaussians);
+
+			acc = opf_Accuracy(Eval);
+			fprintf(stdout,", Accuracy: %f", acc*100); fflush(stdout);
+	        if(acc >= bestAcc){
+				gsl_vector_set(BestParameters,0,sigma);
+				gsl_vector_set(BestParameters,1,radius);
+	            bestAcc = acc;
+	        }
+			
+		}
+	}
+	
+	fprintf(stdout,"\n\nBest sigma = %lf\n", gsl_vector_get(BestParameters,0));
+	fprintf(stdout,"Best radius = %lf\n", gsl_vector_get(BestParameters,1));
+	fflush(stdout);
+	
+	gsl_vector_free(alpha);
+	
+    return BestParameters; 
+}

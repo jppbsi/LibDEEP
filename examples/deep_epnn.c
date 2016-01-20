@@ -20,24 +20,21 @@ Options:\n\
 	-s (sigma): Where sigma is the spread of the Gaussian function (take a value between 0 and 1).\n\
 	Too small deviations cause a very spiky approximation which can not generalize well;\n\
 	Too large deviations smooth out details.\n\
-	Default: 0.3.\n\
+	Default: 1.0.\n\
 	\n\
 	-r (radius): Set r > 0 to use Hyper-Sphere in Enhanced Probabilistic Neural Network.\n\
 	For only Probabilistic Neural Network set r = 0. Default: 0.\n\
  	\n\
- 	-g (gaussians): Set 1 for learning of gaussians from training file.\n\
-	By default is given as the number of labels of the training set, or 'g = 0' as parameter. \n\
-	For learning gaussians is required parameters of OPF_CLUSTER.\n\
-	Parameters for OPF_CLUSTER:\n\
-	-k (kmax): maximum degree for the knn graph\n\
-	-t (type): 0 for height, 1 for area and 2 for volume\n\
-	-v (value of type): value of parameter type in (0-1)\n\
+ 	-k (k maximum degree for the knn graph): Set k >= 1 for learning of gaussians from training file.\n\
+	By default is given as the number of labels of the training set, or 'k = 0' as parameter. \n\
 	\n\
-	-l (learning best parameters): For learning phase, set 1.\n\
+	-l (learning best parameters):\n\
+	For linear-search, set 1.\n\
+	For grid-search, set 2.\n\
 	Learning computes best sigma and best radius based on the evaluation_file.\n\
 	Default: 0.\n\
 	\n\
-	-p (pitch): Step for optimization in learning phase. Default: 10.\n\
+	-p (pitch): Step for optimization in learning phase (linear-search only). Default: 10.\n\
 	\n\
 	(*) - evaluation_file required only in learning phase.\n\
 	\n\n"
@@ -50,9 +47,9 @@ exit(1);
 // ==================================================================================================
 int main(int argc, char **argv){
     char fileName[256];
-    int i, j, step = 10, learningPhase = 0, learnGaussians = 0, kmax = -1, type = -1;
-    double radius = 0.0, sigma = 0.3;
-	float Acc, value = -1.0, time = 0.0;
+    int i, j, step = 10, learningPhase = 0, learnGaussians = 0, kmax = -1;
+    double radius = 0.0, sigma = 1.0;
+	float Acc, time = 0.0;
 	timer tic, toc;
     FILE *f = NULL;
 	
@@ -80,42 +77,28 @@ int main(int argc, char **argv){
 				radius = atof(argv[i]);
 				break;
 
-			case 'g':
-				learnGaussians = atoi(argv[i]);
-				if(learnGaussians == 0 ) fprintf(stdout,"\nUsing labels in training set as gaussians.\n");
-				else if(learnGaussians != 1){
-					fprintf(stdout,"\n*** Unknown parameter for gaussians. ***\n");
-					info();
-					help_usage();
-				}
-				break;
-
 			case 'k':
 				kmax = atoi(argv[i]);
-				break;
-				
-			case 't':
-				type = atoi(argv[i]);
-				if(type > 2 || type < 0){
-					fprintf(stdout,"\n*** Unknown parameter for type. ***\n");
-					info();
-					help_usage();
+				if(kmax > 0){
+					learnGaussians = atoi(argv[i]);
 				}
-				break;
-
-			case 'v':
-				value = atof(argv[i]);
-				if(value > 1 || value < 0){
-					fprintf(stdout,"\n*** Unknown parameter for value. ***\n");
+				if(kmax == 0 ) fprintf(stdout,"\nUsing labels in training set as gaussians.\n");
+				else if(kmax < 0){
+					fprintf(stderr,"\n*** Unknown parameter for gaussians. ***\n");
 					info();
 					help_usage();
 				}
 				break;
 																
 			case 'l':
-				learningPhase = 1;
+				learningPhase = atoi(argv[i]); // 1 for linear search, 2 for grid search
+				if((learningPhase < 0 ) || (learningPhase > 2 )){
+					fprintf(stderr,"\n*** Unknown parameter for learning. ***\n");
+					info();
+					help_usage();
+				}
 				break;
-							
+				
 			case 'p':
 				fprintf(stdout,"\nSet pitch: %f .\n", atof(argv[i]));
 				step = atof(argv[i]);
@@ -129,12 +112,6 @@ int main(int argc, char **argv){
 		}
 	}
 
-
-	if(learnGaussians == 1 && (kmax == -1 || type == -1 || value == -1)){
-		fprintf(stderr,"\n*** Missing parameter in learning optimum gaussians from training file using OPF_CLUSTER ***\n");
-		info();
-		help_usage();
-	}
 
     if((i>=argc-1) || (argc < 2)){
         info();
@@ -186,29 +163,7 @@ int main(int argc, char **argv){
 		gettimeofday(&toc,NULL);
 
 		time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
-		
-		if ((value < 1)&&(value > 0)){
-		  fprintf(stdout, "\n\n Filtering clusters ... ");
-		  switch(type){
-			  case 0:
-					fprintf(stdout, "\n by dome height ... ");
-					float Hmax=0;
-					for (i=0; i < Train->nnodes; i++) if (Train->node[i].dens > Hmax) Hmax = Train->node[i].dens;
-					opf_ElimMaxBelowH(Train, value*Hmax);
-					break;
-			  case 1:
-				    fprintf(stdout, "\n by area ... ");
-				    opf_ElimMaxBelowArea(Train, (int)(value*Train->nnodes));
-				    break;
-			  case 2:
-				    fprintf(stdout, "\n by volume ... ");
-				    double Vmax=0;
-				    for (i=0; i < Train->nnodes; i++) Vmax += Train->node[i].dens;
-				    opf_ElimMaxBelowVolume(Train, (int)(value*Vmax/Train->nnodes));
-				    break;
-			  }
-		}
-		
+
 		fprintf(stdout, "\n\nClustering by OPF ");
 		gettimeofday(&tic,NULL); opf_OPFClustering(Train); gettimeofday(&toc,NULL);
 		printf("num of clusters %d\n",Train->nlabels);
@@ -232,17 +187,16 @@ int main(int argc, char **argv){
 			Train->nlabels = 0;
 			j = 1;
 			for (i = 0; i < Train->nnodes; i++){//propagating root labels
-			if (Train->node[i].root==i){
-				Train->node[i].label = Train->node[i].truelabel;
-				gsl_vector_set(root,j-1,i);// Assign corresponding root ID
-				gsl_vector_set(nGaussians,j,Train->node[i].label);// Assign corresponding label for each Gaussian
-				j++;
-			}
+				if (Train->node[i].root==i){
+					Train->node[i].label = Train->node[i].truelabel;
+					gsl_vector_set(root,j-1,i);// Assign corresponding root ID
+					gsl_vector_set(nGaussians,j,Train->node[i].label);// Assign corresponding label for each Gaussian
+					j++;
+				}
 			else
 				Train->node[i].label = Train->node[Train->node[i].root].truelabel;
 			}
-			for (i = 0; i < Train->nnodes; i++){
-				// retrieve the original number of true labels
+			for (i = 0; i < Train->nnodes; i++){ // retrieve the original number of true labels
 				if (Train->node[i].label > Train->nlabels) Train->nlabels = Train->node[i].label;
 			}
 		}
@@ -259,17 +213,24 @@ int main(int argc, char **argv){
 	
 	//LEARNING BEST PARAMETERS FOR SIGMA AND RADIUS(GRID-SEARCH)
 	if(learningPhase){
+		gsl_vector *BestParameters = NULL;
 		fprintf(stdout, "\nReading evaluating set [%s] ...", argv[eval_set]); fflush(stdout);
 		Subgraph *Eval = ReadSubgraph(argv[eval_set]);
 		fprintf(stdout, " OK"); fflush(stdout);
 		
-		fprintf(stderr,"\n\nLearning Best Parameters on evaluating set ... ");
+		if(learningPhase == 1) fprintf(stderr,"\n\nLearning Best Parameters on evaluating set ... ");
+		else fprintf(stderr,"\n\nGrid-search on evaluating set ... ");
+		
 		gettimeofday(&tic,NULL);	
 		lNode = OrderedListLabel(Train, nGaussians, root);
 		nsample4class = CountClasses(Train, nGaussians, root);
 		double maxRadius = MaxDistance(Train);
 		double minRadius = MinDistance(Train);
-		gsl_vector *BestParameters = LearnBestParameters(Train, Eval, step, lNode, nsample4class, maxRadius, minRadius, nGaussians);
+		if(learningPhase == 1)
+			 BestParameters = LearnBestParameters(Train, Eval, step, lNode, nsample4class, maxRadius, minRadius, nGaussians);
+		else
+			BestParameters = gridSearch(Train, Eval, lNode, nsample4class, maxRadius, minRadius, nGaussians);
+		
 		gettimeofday(&toc,NULL);
 
 		time += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
@@ -384,7 +345,7 @@ int main(int argc, char **argv){
 	gsl_vector_free(nGaussians);
 	gsl_vector_free(root);
 	
-    fprintf(stdout,"OK\n");
+    fprintf(stdout,"OK\n\n");
 
     return 0;
 }

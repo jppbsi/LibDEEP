@@ -13,6 +13,7 @@ gsl_vector *HyperSphere(Subgraph *graph, double radius);// It calculates the hyp
 gsl_vector *OrderedListLabel(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root);// Ordered List Label
 gsl_vector *CountClasses(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root);// Count classes
 gsl_vector *LoadLabels(Subgraph *Train);// Loading labels in training set
-gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians); // Learn best parameters (sigma and radius) in evalutaing set
+gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians); // Learn best parameters for sigma and radius using linear-search
+gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians);  // Learn best parameters for sigma and radius using grid-search
 
 #endif
