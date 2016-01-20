@@ -49,7 +49,7 @@ int main(int argc, char **argv){
     char fileName[256];
     int i, j, step = 10, learningPhase = 0, learnGaussians = 0, kmax = -1;
     double radius = 0.0, sigma = 1.0;
-	float Acc, time = 0.0;
+	float Acc, time1 = 0.0, time2 = 0.0;
 	timer tic, toc;
     FILE *f = NULL;
 	
@@ -162,13 +162,13 @@ int main(int argc, char **argv){
 		opf_BestkMinCut(Train,1,kmax); //default kmin = 1
 		gettimeofday(&toc,NULL);
 
-		time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+		time1 = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
 		fprintf(stdout, "\n\nClustering by OPF ");
 		gettimeofday(&tic,NULL); opf_OPFClustering(Train); gettimeofday(&toc,NULL);
 		printf("num of clusters %d\n",Train->nlabels);
 		
-		time += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+		time1 += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 		
 		//SET N-CLUSTER IN N-GAUSSIANS
 		nGaussians = LoadLabels(Train);
@@ -204,7 +204,7 @@ int main(int argc, char **argv){
 			for (i = 0; i < Train->nnodes; i++) Train->node[i].truelabel = Train->node[i].label+1;
 		}
 		
-		fprintf(stdout, "\nLearning gaussians time : %f seconds\n", time); fflush(stdout);	
+		fprintf(stdout, "\nLearning gaussians time : %f seconds\n", time1); fflush(stdout);	
 	}
 	
 	
@@ -233,24 +233,25 @@ int main(int argc, char **argv){
 		
 		gettimeofday(&toc,NULL);
 
-		time += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+		time2 = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
-		fprintf(stdout, "\nLearning parameters time: %f seconds\n", (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0)); fflush(stdout);
+		fprintf(stdout, "\nLearning parameters time: %f seconds\n", time2); fflush(stdout);
 
 		sigma = gsl_vector_get(BestParameters, 0);
 		radius = gsl_vector_get(BestParameters, 1);
 		gsl_vector_free(BestParameters);
 		DestroySubgraph(&Eval);
 		
-	}
-	
-	//WRITING EVALUATING TIME
-	if(time > 0.0){
+		//WRITING EVALUATING TIME
 		sprintf(fileName,"%s.time",argv[eval_set]);
 		f = fopen(fileName,"a");
-		fprintf(f,"%f\n",time);
+		fprintf(f,"%f\n",time2);
 		fclose(f);
+		
+		
 	}
+	
+
 	
 	
 	//TRAINING PHASE	
@@ -267,13 +268,13 @@ int main(int argc, char **argv){
 	gettimeofday(&toc,NULL);
 	fprintf(stdout, " OK\n"); fflush(stdout);
 	
-	time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+	time1 += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
-	fprintf(stdout, "\nTraining time: %f seconds\n", time); fflush(stdout);
+	fprintf(stdout, "\nAllocating training set time: %f seconds\n", (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0)); fflush(stdout);
 
 	sprintf(fileName,"%s.time",argv[train_set]);
 	f = fopen(fileName,"a");
-	fprintf(f,"%f\n",time);
+	fprintf(f,"%f\n",time1);
 	fclose(f);
 	
 	
@@ -282,6 +283,7 @@ int main(int argc, char **argv){
     fflush(stdout);
 	sprintf(fileName,"%s.parameters.out",argv[train_set]);
     f = fopen(fileName, "w");
+	if(kmax > 0) fprintf(f,"%i\n",kmax);
 	fprintf(f,"%lf\n",sigma);
 	fprintf(f,"%lf\n",radius);
     fclose(f);
@@ -298,13 +300,13 @@ int main(int argc, char **argv){
   	gettimeofday(&tic,NULL); EPNN(Train, Test, sigma, lNode, nsample4class, alpha, nGaussians); gettimeofday(&toc,NULL);
 	fprintf(stdout,"OK\n");
 
-	time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+	time1 = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
-	fprintf(stdout, "\nTesting time: %f seconds\n", time); fflush(stdout);
+	fprintf(stdout, "\nTesting time: %f seconds\n", time1); fflush(stdout);
 
 	sprintf(fileName,"%s.time",argv[test_set]);
 	f = fopen(fileName,"a");
-	fprintf(f,"%f\n",time);
+	fprintf(f,"%f\n",time1);
 	fclose(f);
 	
 	
