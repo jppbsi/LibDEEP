@@ -318,9 +318,9 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 	
 	//GRID-SEARCH FOR SIGMA AND RADIUS
 	bestAcc = -1.0;
-	for( ; sigma <= 1.0;  ){
+	for(sigma = 0.000000001; sigma <= 1.0; ){
 		sigma+=0.05;
-		for(radius = 0.0000001; radius <= maxRadius; radius+=(minRadius+(radius*2))){
+		for(radius = 0.000001; radius <= maxRadius; radius+=(minRadius+radius/7)){
 			fprintf(stdout,"\nTrying sigma: %lf and radius: %lf", sigma, radius); fflush(stdout);
 
 			gsl_vector_free(alpha);
