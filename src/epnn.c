@@ -320,7 +320,7 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 	bestAcc = -1.0;
 	for( ; sigma <= 1.0;  ){
 		sigma+=0.05;
-		for(radius = 0.0000001; radius <= (maxRadius+minRadius)/2; radius+=(minRadius+(radius*2))){
+		for(radius = 0.0000001; radius <= maxRadius; radius+=(minRadius+(radius*2))){
 			fprintf(stdout,"\nTrying sigma: %lf and radius: %lf", sigma, radius); fflush(stdout);
 
 			gsl_vector_free(alpha);
