@@ -201,6 +201,7 @@ int main(int argc, char **argv){
 		fprintf(stdout, "\n\nClustering ... "); fflush(stdout);
 		gsl_vector_free(lNode);
 		gsl_vector_free(nsample4class);
+		gsl_vector_free(nGaussians);
 		
 		gettimeofday(&tic,NULL);
 		gaussians = opfcluster4epnn(Train, gaussians, kmax);

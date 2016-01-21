@@ -252,15 +252,20 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 	int i,k;
 	Subgraph *g = NULL;
 	g = CopySubgraph(Train);
-	gsl_vector *root = NULL;
 	gsl_vector *alpha = hyperSphere(Train, 0);
-	gsl_vector *BestParameters = gsl_vector_calloc(3);
+	gsl_vector *BestParameters = gsl_vector_calloc(3);	
 	
-	gsl_vector **gaussians = (gsl_vector **)malloc(2 * sizeof(gsl_vector *));
-
+	gsl_vector **gaussians = (gsl_vector **)malloc(4 * sizeof(gsl_vector *));
+	gaussians[0] = nGaussians;// Start with nLabels
+	gaussians[1] = NULL;//root
+	gaussians[2] = lNode;//lNode global
+	gaussians[3] = nsample4class;//nsample4class global
 
 	//GRID-SEARCH FOR PARAMTER KAMX FOR OPF_CLUSTER	
 	if(kmax > 0){
+		gaussians[2] = NULL;//lNode local
+		gaussians[3] = NULL;//nsample4class local
+		
 		for(k = 1; k <= kmax; k++){
 			fprintf(stdout,"\nTrying kmax: %i ", k); fflush(stdout);
 			
@@ -296,21 +301,17 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 
 		//free variables
 		opf_ResetSubgraph(g);
-		gaussians[0] = nGaussians;
-		gaussians[1] = root;
-		
+				
 		//using best kmax for opf_cluster
 		opf_BestkMinCut(g,1,kmax);
 		opf_OPFClustering(g);
 		
 		gaussians = opfcluster4epnn(g, gaussians, kmax);
-	
-		nGaussians = gaussians[0];
-		root = gaussians[1];
 		
 		//updating epnn
-		lNode = orderedListLabel(g, nGaussians, root);
-		nsample4class = countClasses(g, nGaussians, root);
+
+		gaussians[2] = orderedListLabel(g, gaussians[0], gaussians[1]);
+		gaussians[3] = countClasses(g, gaussians[0], gaussians[1]);
 	}
 
 
@@ -325,7 +326,7 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 			gsl_vector_free(alpha);
 			alpha = hyperSphere(g, radius);
 
-			epnn(g, Eval, sigma, lNode, nsample4class, alpha, nGaussians);
+			epnn(g, Eval, sigma, gaussians[2], gaussians[3], alpha, gaussians[0]);
 
 			acc = opf_Accuracy(Eval);
 			fprintf(stdout,", Accuracy: %f", acc*100); fflush(stdout);
@@ -337,10 +338,17 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 			
 		}
 	}
-		
+
+
 	gsl_vector_free(alpha);
 	DestroySubgraph(&g);
-    free(gaussians);
+	if(kmax){
+		gsl_vector_free(gaussians[0]);
+		gsl_vector_free(gaussians[1]);
+		gsl_vector_free(gaussians[2]);
+		gsl_vector_free(gaussians[3]);
+	}
+	free(gaussians);
 	
     return BestParameters; 
 }
