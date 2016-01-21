@@ -29,12 +29,9 @@ Options:\n\
 	By default is given as the number of labels of the training set, or 'k = 0' as parameter. \n\
 	\n\
 	-l (learning best parameters):\n\
-	For linear-search, set 1.\n\
-	For grid-search, set 2.\n\
+	For grid-search, set 1. Grid search parameter accepts kmax (parameter k). \n\
 	Learning computes best sigma and best radius based on the evaluation_file.\n\
 	Default: 0.\n\
-	\n\
-	-p (pitch): Step for optimization in learning phase (linear-search only). Default: 10.\n\
 	\n\
 	(*) - evaluation_file required only in learning phase.\n\
 	\n\n"
@@ -47,9 +44,9 @@ exit(1);
 // ==================================================================================================
 int main(int argc, char **argv){
     char fileName[256];
-    int i, j, step = 10, learningPhase = 0, learnGaussians = 0, kmax = -1;
+    int i, j, learningPhase = 0, kmax = 0;
     double radius = 0.0, sigma = 1.0;
-	float Acc, time1 = 0.0, time2 = 0.0;
+	float Acc, time = 0.0;
 	timer tic, toc;
     FILE *f = NULL;
 	
@@ -79,9 +76,6 @@ int main(int argc, char **argv){
 
 			case 'k':
 				kmax = atoi(argv[i]);
-				if(kmax > 0){
-					learnGaussians = atoi(argv[i]);
-				}
 				if(kmax == 0 ) fprintf(stdout,"\nUsing labels in training set as gaussians.\n");
 				else if(kmax < 0){
 					fprintf(stderr,"\n*** Unknown parameter for gaussians. ***\n");
@@ -91,17 +85,12 @@ int main(int argc, char **argv){
 				break;
 																
 			case 'l':
-				learningPhase = atoi(argv[i]); // 1 for linear search, 2 for grid search
-				if((learningPhase < 0 ) || (learningPhase > 2 )){
+				learningPhase = atoi(argv[i]);
+				if((learningPhase < 0 ) || (learningPhase > 1 )){
 					fprintf(stderr,"\n*** Unknown parameter for learning. ***\n");
 					info();
 					help_usage();
 				}
-				break;
-				
-			case 'p':
-				fprintf(stdout,"\nSet pitch: %f .\n", atof(argv[i]));
-				step = atof(argv[i]);
 				break;
 		
 
@@ -135,7 +124,7 @@ int main(int argc, char **argv){
 
 
 
-    //ID argv in input files
+    //ID ARGV IN INPUT FILES
     int train_set = 0, eval_set = 0, test_set = 0;
 
     if((j == argc - 2) && (learningPhase == 1)){
@@ -152,131 +141,95 @@ int main(int argc, char **argv){
     Subgraph *Train = ReadSubgraph(argv[train_set]);
     fprintf(stdout, " OK"); fflush(stdout);
 	
+	//set gaussians = nlabels
+	nGaussians = loadLabels(Train);
 	
+	//auxiliar vector to manipulate individual parameters
+	gsl_vector **gaussians = (gsl_vector **)malloc(2 * sizeof(gsl_vector *));
+	gaussians[0] = nGaussians;
+	gaussians[1] = root;
+		
 	
-	//LEARNING GAUSSIANS
-	if(learnGaussians){
-		fprintf(stdout, "\n\nLearning gaussians from [%s]... ", argv[train_set]); fflush(stdout);
-		
-		gettimeofday(&tic,NULL);
-		opf_BestkMinCut(Train,1,kmax); //default kmin = 1
-		gettimeofday(&toc,NULL);
-
-		time1 = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
-
-		fprintf(stdout, "\n\nClustering by OPF ");
-		gettimeofday(&tic,NULL); opf_OPFClustering(Train); gettimeofday(&toc,NULL);
-		printf("num of clusters %d\n",Train->nlabels);
-		
-		time1 += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
-		
-		//SET N-CLUSTER IN N-GAUSSIANS
-		nGaussians = LoadLabels(Train);
-		root = gsl_vector_calloc(Train->nlabels); //Allocate space root
-		
-		/* If the training set has true labels, then create a
-		   classifier by propagating the true label of each root to
-		   the nodes of its tree (cluster). This classifier can be
-		   evaluated by running opf_knn_classify on the training set
-		   or on unseen testing set. Otherwise, copy the cluster
-		   labels to the true label of the training set and write a
-		   classifier, which essentially can propagate the cluster
-		   labels to new nodes in a testing set. */
-
-		if (Train->node[0].truelabel!=0){ // labeled training set
-			Train->nlabels = 0;
-			j = 1;
-			for (i = 0; i < Train->nnodes; i++){//propagating root labels
-				if (Train->node[i].root==i){
-					Train->node[i].label = Train->node[i].truelabel;
-					gsl_vector_set(root,j-1,i);// Assign corresponding root ID
-					gsl_vector_set(nGaussians,j,Train->node[i].label);// Assign corresponding label for each Gaussian
-					j++;
-				}
-			else
-				Train->node[i].label = Train->node[Train->node[i].root].truelabel;
-			}
-			for (i = 0; i < Train->nnodes; i++){ // retrieve the original number of true labels
-				if (Train->node[i].label > Train->nlabels) Train->nlabels = Train->node[i].label;
-			}
-		}
-		else{ // unlabeled training set
-			for (i = 0; i < Train->nnodes; i++) Train->node[i].truelabel = Train->node[i].label+1;
-		}
-		
-		fprintf(stdout, "\nLearning gaussians time : %f seconds\n", time1); fflush(stdout);	
-	}
-	
-	
-	//SET N-LABELS IN N-GAUSSIANS
-	if(!nGaussians) nGaussians = LoadLabels(Train);
-	
-	//LEARNING BEST PARAMETERS FOR SIGMA AND RADIUS(GRID-SEARCH)
+	//LEARNING BEST PARAMETERS (GRID-SEARCH)
 	if(learningPhase){
 		gsl_vector *BestParameters = NULL;
 		fprintf(stdout, "\nReading evaluating set [%s] ...", argv[eval_set]); fflush(stdout);
 		Subgraph *Eval = ReadSubgraph(argv[eval_set]);
 		fprintf(stdout, " OK"); fflush(stdout);
 		
-		if(learningPhase == 1) fprintf(stderr,"\n\nLearning Best Parameters on evaluating set ... ");
-		else fprintf(stderr,"\n\nGrid-search on evaluating set ... ");
+		fprintf(stderr,"\n\nGrid-search on evaluating set ... ");
 		
 		gettimeofday(&tic,NULL);	
-		lNode = OrderedListLabel(Train, nGaussians, root);
-		nsample4class = CountClasses(Train, nGaussians, root);
-		double maxRadius = MaxDistance(Train);
-		double minRadius = MinDistance(Train);
-		if(learningPhase == 1)
-			 BestParameters = LearnBestParameters(Train, Eval, step, lNode, nsample4class, maxRadius, minRadius, nGaussians);
-		else
-			BestParameters = gridSearch(Train, Eval, lNode, nsample4class, maxRadius, minRadius, nGaussians);
-		
+		double maxRadius = maxDistance(Train);
+		double minRadius = minDistance(Train);
+		lNode = orderedListLabel(Train, nGaussians, root);
+		nsample4class = countClasses(Train, nGaussians, root);
+		BestParameters = gridSearch(Train, Eval, lNode, nsample4class, maxRadius, minRadius, nGaussians, kmax);
 		gettimeofday(&toc,NULL);
 
-		time2 = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+		time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
-		fprintf(stdout, "\nLearning parameters time: %f seconds\n", time2); fflush(stdout);
-
-		sigma = gsl_vector_get(BestParameters, 0);
-		radius = gsl_vector_get(BestParameters, 1);
+		fprintf(stdout, "\nLearning parameters time: %f seconds\n", time); fflush(stdout);
+		
+		if(kmax){
+			kmax = (int)gsl_vector_get(BestParameters, 0);
+			fprintf(stdout,"\nBest kmax = %i", kmax);
+		} 
+		sigma = gsl_vector_get(BestParameters, 1);
+		radius = gsl_vector_get(BestParameters, 2);
 		gsl_vector_free(BestParameters);
 		DestroySubgraph(&Eval);
+		
+		fprintf(stdout,"\nBest sigma = %lf", sigma);
+		fprintf(stdout,"\nBest radius = %lf", radius);
+		fflush(stdout);
+		
 		
 		//WRITING EVALUATING TIME
 		sprintf(fileName,"%s.time",argv[eval_set]);
 		f = fopen(fileName,"a");
-		fprintf(f,"%f\n",time2);
+		fprintf(f,"%f\n",time);
 		fclose(f);
-		
-		
 	}
+		
 	
 
-	
-	
-	//TRAINING PHASE	
-	if(radius){
-		fprintf(stdout, "\nComputing Hyper-Sphere with radius: %lf ...", radius); fflush(stdout);
+	//TRAINING PHASE
+	fprintf(stdout, "\nAllocating training set [%s] ...", argv[train_set]); fflush(stdout);
+	time = 0.0;
+	if(kmax){
+		fprintf(stdout, "\n\nClustering ... "); fflush(stdout);
+		gsl_vector_free(lNode);
+		gsl_vector_free(nsample4class);
+		
+		gettimeofday(&tic,NULL);
+		gaussians = opfcluster4epnn(Train, gaussians, kmax);
+		nGaussians = gaussians[0]; root = gaussians[1];
+		lNode = orderedListLabel(Train, nGaussians, root);
+		nsample4class = countClasses(Train, nGaussians, root);
+		gettimeofday(&toc,NULL);
+
+		time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+		fprintf(stdout, "\nClustering time : %f seconds\n", time); fflush(stdout);	
 	}
-	else{
-		fprintf(stdout, "\nAllocating training set ..."); fflush(stdout);
-	}
+	if(radius) fprintf(stdout, "\n\nComputing Hyper-Sphere with radius: %lf ...", radius); fflush(stdout);
+
 	gettimeofday(&tic,NULL);
-	alpha = HyperSphere(Train, radius);
-	if(!lNode) lNode = OrderedListLabel(Train, nGaussians, root);
-	if(!nsample4class) nsample4class = CountClasses(Train, nGaussians, root);
+	alpha = hyperSphere(Train, radius);
+	if(!learningPhase && !kmax){
+		lNode = orderedListLabel(Train, nGaussians, root);
+		nsample4class = countClasses(Train, nGaussians, root);
+	}
 	gettimeofday(&toc,NULL);
-	fprintf(stdout, " OK\n"); fflush(stdout);
-	
-	time1 += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
-	fprintf(stdout, "\nAllocating training set time: %f seconds\n", (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0)); fflush(stdout);
+	fprintf(stdout, " OK\n"); fflush(stdout);	
+	time += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+	fprintf(stdout, "\nAllocating training time: %f seconds\n", time); fflush(stdout);
 
 	sprintf(fileName,"%s.time",argv[train_set]);
 	f = fopen(fileName,"a");
-	fprintf(f,"%f\n",time1);
+	fprintf(f,"%f\n",time);
 	fclose(f);
-	
 	
     //WRITING PARAMETERS FILES
     fprintf(stdout, "\nWriting parameters file ... ");
@@ -297,16 +250,16 @@ int main(int argc, char **argv){
 	fprintf(stdout, " OK\n"); fflush(stdout);
 	
     fprintf(stdout, "\nInitializing EPNN ... ");
-  	gettimeofday(&tic,NULL); EPNN(Train, Test, sigma, lNode, nsample4class, alpha, nGaussians); gettimeofday(&toc,NULL);
+  	gettimeofday(&tic,NULL); epnn(Train, Test, sigma, lNode, nsample4class, alpha, nGaussians); gettimeofday(&toc,NULL);
 	fprintf(stdout,"OK\n");
 
-	time1 = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
+	time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
 
-	fprintf(stdout, "\nTesting time: %f seconds\n", time1); fflush(stdout);
+	fprintf(stdout, "\nTesting time: %f seconds\n", time); fflush(stdout);
 
 	sprintf(fileName,"%s.time",argv[test_set]);
 	f = fopen(fileName,"a");
-	fprintf(f,"%f\n",time1);
+	fprintf(f,"%f\n",time);
 	fclose(f);
 	
 	
@@ -346,6 +299,7 @@ int main(int argc, char **argv){
 	gsl_vector_free(nsample4class);
 	gsl_vector_free(nGaussians);
 	gsl_vector_free(root);
+    free(gaussians);
 	
     fprintf(stdout,"OK\n\n");
 

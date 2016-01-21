@@ -1,9 +1,8 @@
 #include "epnn.h"
 
 
-// Enhanced probabilistic neural network with local decision circles based on the Parzen-window estimation
-// ==================================================================================================
-void EPNN(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_vector  *nsample4class, gsl_vector *alpha, gsl_vector *nGaussians)
+// ENHANCED PROBABILISTIC NEURAL NETWORK WITH LOCAL DECISION CIRCLES BASED ON THE PARZEN-WINDOW ESTIMATION
+void epnn(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_vector  *nsample4class, gsl_vector *alpha, gsl_vector *nGaussians)
 {	
 	double sum[(int)gsl_vector_get(nGaussians,0)+1], prob, norm; 
 	int i=0, j, k, l, aux;
@@ -48,9 +47,61 @@ void EPNN(Subgraph *Train, Subgraph *Test, double sigma, gsl_vector *lNode, gsl_
 }
 
 
-// Maximum Euclidian Distance of training data pairs
-// ==================================================================================================
-double MaxDistance(Subgraph *graph){
+
+
+// OPF-CLUSTER
+gsl_vector **opfcluster4epnn(Subgraph *Train, gsl_vector **gaussians, int kmax)
+{
+
+	int i, j;
+	
+	opf_BestkMinCut(Train,1,kmax); //default kmin = 1
+
+	fprintf(stdout, "\n\nClustering by OPF...  ");
+	opf_OPFClustering(Train);
+	printf("num of clusters: %d\n",Train->nlabels);
+
+	//set n-cluster in n-gaussians
+	gaussians[0] = loadLabels(Train); //nGaussians
+	gaussians[1] = gsl_vector_calloc(Train->nlabels); //Allocate space root
+
+	/* If the training set has true labels, then create a
+	   classifier by propagating the true label of each root to
+	   the nodes of its tree (cluster). This classifier can be
+	   evaluated by running opf_knn_classify on the training set
+	   or on unseen testing set. Otherwise, copy the cluster
+	   labels to the true label of the training set and write a
+	   classifier, which essentially can propagate the cluster
+	   labels to new nodes in a testing set. */
+
+	if (Train->node[0].truelabel!=0){ // labeled training set
+		Train->nlabels = 0;
+		j = 1;
+		for (i = 0; i < Train->nnodes; i++){//propagating root labels
+			if (Train->node[i].root==i){
+				Train->node[i].label = Train->node[i].truelabel;
+				gsl_vector_set(gaussians[1],j-1,i);// Assign corresponding root ID
+				gsl_vector_set(gaussians[0],j,Train->node[i].label);// Assign corresponding label for each Gaussian
+				j++;
+			}
+		else
+			Train->node[i].label = Train->node[Train->node[i].root].truelabel;
+		}
+		for (i = 0; i < Train->nnodes; i++){ // retrieve the original number of true labels
+			if (Train->node[i].label > Train->nlabels) Train->nlabels = Train->node[i].label;
+		}
+	}
+	else{ // unlabeled training set
+		for (i = 0; i < Train->nnodes; i++) Train->node[i].truelabel = Train->node[i].label+1;
+	}
+
+	return gaussians;
+}
+
+
+
+// MAXIMUM EUCLIDIAN DISTANCE OF TRAINING DATA PAIRS
+double maxDistance(Subgraph *graph){
     
     double maxRadius = -1.0, dist;
     int i, j;
@@ -66,9 +117,9 @@ double MaxDistance(Subgraph *graph){
     return  maxRadius;
 }
 
-// Minimum Euclidian Distance of training data pairs
-// ==================================================================================================
-double MinDistance(Subgraph *graph){
+
+// MINIMUM EUCLIDIAN DISTANCE OF TRAINING DATA PAIRS
+double minDistance(Subgraph *graph){
     
     double minRadius = FLT_MAX, dist;
     int i, j;
@@ -84,9 +135,9 @@ double MinDistance(Subgraph *graph){
     return  minRadius;
 }
 
-// It calculates the hyper-sphere with radius r for each training node
-// ==================================================================================================
-gsl_vector *HyperSphere(Subgraph *graph, double radius){
+
+// IT CALCULATES THE HYPER-SPHERE WITH RADIUS R FOR EACH TRAINING NODE
+gsl_vector *hyperSphere(Subgraph *graph, double radius){
 	
     int i, j, inSphere, sameLabel;
     double dist = 0.0;
@@ -115,9 +166,8 @@ gsl_vector *HyperSphere(Subgraph *graph, double radius){
 	return alpha;   
 }
 
-// Ordered List Label
-// ==================================================================================================
-gsl_vector *OrderedListLabel(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root)
+// ORDERED LIST LABEL
+gsl_vector *orderedListLabel(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root)
 {
 	int i = 0, j, l;
 
@@ -152,9 +202,8 @@ gsl_vector *OrderedListLabel(Subgraph *Train, gsl_vector *nGaussians, gsl_vector
 }	
 
 
-// Count classes
-// ==================================================================================================
-gsl_vector *CountClasses(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root)
+// COUNT CLASSES
+gsl_vector *countClasses(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *root)
 {
 	int i, l;
 	gsl_vector *nsample4class = gsl_vector_calloc((int)gsl_vector_get(nGaussians,0)+1); 
@@ -178,9 +227,9 @@ gsl_vector *CountClasses(Subgraph *Train, gsl_vector *nGaussians, gsl_vector *ro
 }
 
 
-// Loading labels in training set
-// ==================================================================================================
-gsl_vector *LoadLabels(Subgraph *Train)
+
+// LOADING LABELS IN TRAINING SET
+gsl_vector *loadLabels(Subgraph *Train)
 {
 	int i;
 	gsl_vector *nGaussians = gsl_vector_calloc(Train->nlabels+1); 
@@ -193,94 +242,105 @@ gsl_vector *LoadLabels(Subgraph *Train)
 }
 
 
-// Learn best parameters (sigma and radius) in evalutaing set
-// ==================================================================================================
-gsl_vector *LearnBestParameters(Subgraph *Train, Subgraph *Eval, int step, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians){  
-	
-    double rstep = sqrt(maxRadius+minRadius)/step, learnVar = 0.0;
-	float acc, bestAcc = -1.0;
-	int i=0;
-	
-	gsl_vector *alpha = HyperSphere(Train, 0);
-	
-	gsl_vector *BestParameters = gsl_vector_calloc(2);
-	
-    while(learnVar <= 1){
-        fprintf(stdout,"\nTrying sigma %lf ", learnVar);	
-		EPNN(Train, Eval, learnVar, lNode, nsample4class, alpha, nGaussians);
-		acc = opf_Accuracy(Eval);
-		fprintf(stdout,"Accuracy: %f", acc*100);
-        if(acc > bestAcc){
-			gsl_vector_set(BestParameters,0,learnVar);
-            bestAcc = acc;
-        }
-		learnVar += 0.1; 		
-    }
-		
-	fprintf(stdout,"\nBest sigma = %lf\n", gsl_vector_get(BestParameters,0));
-	
-	bestAcc = -1;
-	learnVar = 0.0;
-    while(i < step){   
-        fprintf(stdout,"\nTrying Radius %i of %i: %lf ", i+1, step, learnVar);
-		gsl_vector_free(alpha);
-		alpha = HyperSphere(Train, learnVar);	
-		EPNN(Train, Eval, gsl_vector_get(BestParameters,0), lNode, nsample4class, alpha, nGaussians);
-        acc = opf_Accuracy(Eval);
-		fprintf(stdout,"Accuracy: %f", acc*100);
-        if(acc > bestAcc){
-			gsl_vector_set(BestParameters,1,learnVar);
-            bestAcc = acc;
-        }
-        learnVar += rstep;
-		i++;
-    }
-	fprintf(stdout,"\nBest radius = %lf\n", gsl_vector_get(BestParameters,1)); fflush(stdout);
-	
-	gsl_vector_free(alpha);
-	
-    return BestParameters; 
-}
 
 
-// Grid-search (sigma and radius) in evalutaing set
-// ==================================================================================================
-gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians){  
+// GRID-SEARCH (KMAX, SIGMA AND RADIUS) IN EVALUTAING SET
+gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians, int kmax){  
 	
     double sigma=-0.05, radius;
 	float acc, bestAcc = -1.0;
+	int i,k;
+	Subgraph *g = NULL;
+	g = CopySubgraph(Train);
+	gsl_vector *root = NULL;
+	gsl_vector *alpha = hyperSphere(Train, 0);
+	gsl_vector *BestParameters = gsl_vector_calloc(3);
 	
-	gsl_vector *alpha = HyperSphere(Train, 0);
+	gsl_vector **gaussians = (gsl_vector **)malloc(2 * sizeof(gsl_vector *));
+
+
+	//GRID-SEARCH FOR PARAMTER KAMX FOR OPF_CLUSTER	
+	if(kmax > 0){
+		for(k = 1; k <= kmax; k++){
+			fprintf(stdout,"\nTrying kmax: %i ", k); fflush(stdout);
+			
+			opf_BestkMinCut(g,1,k);
+			opf_OPFClustering(g);
+		
+			if (g->node[0].truelabel!=0){ // labeled training set
+				g->nlabels = 0;
+				for (i = 0; i < g->nnodes; i++){//propagating root labels
+					if (g->node[i].root==i) g->node[i].label = g->node[i].truelabel;
+				else
+					g->node[i].label = g->node[g->node[i].root].truelabel;}
+				for (i = 0; i < g->nnodes; i++){ // retrieve the original number of true labels
+					if (g->node[i].label > g->nlabels) g->nlabels = g->node[i].label;}
+			}
+			else{ // unlabeled training set
+				for (i = 0; i < g->nnodes; i++) g->node[i].truelabel = g->node[i].label+1;
+			}
+			
+			opf_OPFClassifying(g, Eval);
+			// opf_OPFknnClassify(g, Eval);
+			acc = opf_Accuracy(Eval);
+			if(acc > bestAcc){
+				gsl_vector_set(BestParameters,0,k);
+	            bestAcc = acc;
+	        }
+			printf("  acc: %f", acc);
+			opf_ResetSubgraph(g);
+		}
+		
+		kmax = (int)gsl_vector_get(BestParameters,0);
+		fprintf(stdout,"\nBest kmax = %i\n", kmax); fflush(stdout);
+
+		//free variables
+		opf_ResetSubgraph(g);
+		gaussians[0] = nGaussians;
+		gaussians[1] = root;
+		
+		//using best kmax for opf_cluster
+		opf_BestkMinCut(g,1,kmax);
+		opf_OPFClustering(g);
+		
+		gaussians = opfcluster4epnn(g, gaussians, kmax);
 	
-	gsl_vector *BestParameters = gsl_vector_calloc(2);
+		nGaussians = gaussians[0];
+		root = gaussians[1];
+		
+		//updating epnn
+		lNode = orderedListLabel(g, nGaussians, root);
+		nsample4class = countClasses(g, nGaussians, root);
+	}
+
+
 	
-	
+	//GRID-SEARCH FOR SIGMA AND RADIUS
+	bestAcc = -1.0;
 	for( ; sigma <= 1.0;  ){
 		sigma+=0.05;
 		for(radius = 0.0000001; radius <= (maxRadius+minRadius)/2; radius+=(minRadius+(radius*2))){
 			fprintf(stdout,"\nTrying sigma: %lf and radius: %lf", sigma, radius); fflush(stdout);
 
 			gsl_vector_free(alpha);
-			alpha = HyperSphere(Train, radius);
+			alpha = hyperSphere(g, radius);
 
-			EPNN(Train, Eval, sigma, lNode, nsample4class, alpha, nGaussians);
+			epnn(g, Eval, sigma, lNode, nsample4class, alpha, nGaussians);
 
 			acc = opf_Accuracy(Eval);
 			fprintf(stdout,", Accuracy: %f", acc*100); fflush(stdout);
 	        if(acc >= bestAcc){
-				gsl_vector_set(BestParameters,0,sigma);
-				gsl_vector_set(BestParameters,1,radius);
+				gsl_vector_set(BestParameters,1,sigma);
+				gsl_vector_set(BestParameters,2,radius);
 	            bestAcc = acc;
 	        }
 			
 		}
 	}
-	
-	fprintf(stdout,"\n\nBest sigma = %lf\n", gsl_vector_get(BestParameters,0));
-	fprintf(stdout,"Best radius = %lf\n", gsl_vector_get(BestParameters,1));
-	fflush(stdout);
-	
+		
 	gsl_vector_free(alpha);
+	DestroySubgraph(&g);
+    free(gaussians);
 	
     return BestParameters; 
 }
