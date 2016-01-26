@@ -29,7 +29,7 @@ Options:\n\
 	By default is given as the number of labels of the training set, or 'k = 0' as parameter. \n\
 	\n\
 	-l (learning best parameters):\n\
-	For grid-search, set 1. Grid search parameter accepts kmax (parameter k). \n\
+	For grid-search, set 1. Grid search parameter accepts kmax (parameter k) and radius -1 for PNN grid-search. \n\
 	Learning computes best sigma and best radius based on the evaluation_file.\n\
 	Default: 0.\n\
 	\n\
@@ -55,6 +55,9 @@ int main(int argc, char **argv){
 	gsl_vector *nGaussians = NULL;
     gsl_vector *nsample4class = NULL;
 	gsl_vector *root = NULL;
+	
+	//auxiliary vector to manipulate individual parameters
+	gsl_vector **gaussians = (gsl_vector **)malloc(2 * sizeof(gsl_vector *));
 
     // parse options
 	for(i=1;i<argc;i++)
@@ -141,14 +144,8 @@ int main(int argc, char **argv){
     Subgraph *Train = ReadSubgraph(argv[train_set]);
     fprintf(stdout, " OK"); fflush(stdout);
 	
-	//set gaussians = nlabels
-	nGaussians = loadLabels(Train);
 	
-	//auxiliar vector to manipulate individual parameters
-	gsl_vector **gaussians = (gsl_vector **)malloc(2 * sizeof(gsl_vector *));
-	gaussians[0] = nGaussians;
-	gaussians[1] = root;
-		
+
 	
 	//LEARNING BEST PARAMETERS (GRID-SEARCH)
 	if(learningPhase){
@@ -160,11 +157,7 @@ int main(int argc, char **argv){
 		fprintf(stderr,"\n\nGrid-search on evaluating set ... ");
 		
 		gettimeofday(&tic,NULL);	
-		double maxRadius = maxDistance(Train);
-		double minRadius = minDistance(Train);
-		lNode = orderedListLabel(Train, nGaussians, root);
-		nsample4class = countClasses(Train, nGaussians, root);
-		BestParameters = gridSearch(Train, Eval, lNode, nsample4class, maxRadius, minRadius, nGaussians, kmax);
+		BestParameters = gridSearch(Train, Eval, radius, kmax);
 		gettimeofday(&toc,NULL);
 
 		time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
@@ -177,9 +170,10 @@ int main(int argc, char **argv){
 		} 
 		sigma = gsl_vector_get(BestParameters, 1);
 		radius = gsl_vector_get(BestParameters, 2);
+		
 		gsl_vector_free(BestParameters);
 		DestroySubgraph(&Eval);
-		
+
 		fprintf(stdout,"\nBest sigma = %lf", sigma);
 		fprintf(stdout,"\nBest radius = %lf", radius);
 		fflush(stdout);
@@ -192,40 +186,36 @@ int main(int argc, char **argv){
 		fclose(f);
 	}
 		
-	
+		
 
 	//TRAINING PHASE
-	fprintf(stdout, "\nAllocating training set [%s] ...", argv[train_set]); fflush(stdout);
-	time = 0.0;
 	if(kmax){
-		fprintf(stdout, "\n\nClustering ... "); fflush(stdout);
-		gsl_vector_free(lNode);
-		gsl_vector_free(nsample4class);
-		gsl_vector_free(nGaussians);
-		
+		fprintf(stdout, "\n\nClustering [%s] with kmax: %i... ",argv[train_set], kmax); fflush(stdout);
+				
 		gettimeofday(&tic,NULL);
 		gaussians = opfcluster4epnn(Train, gaussians, kmax);
 		nGaussians = gaussians[0]; root = gaussians[1];
-		lNode = orderedListLabel(Train, nGaussians, root);
-		nsample4class = countClasses(Train, nGaussians, root);
 		gettimeofday(&toc,NULL);
-
+		
 		time = (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
-		fprintf(stdout, "\nClustering time : %f seconds\n", time); fflush(stdout);	
+		fprintf(stdout, "\nClustering time: %f seconds\n", time); fflush(stdout);	
 	}
+	else{
+		//set gaussians = nlabels if not 
+		nGaussians = loadLabels(Train);
+	}
+	
+	fprintf(stdout, "\nAllocating training set [%s] ...", argv[train_set]); fflush(stdout);
 	if(radius) fprintf(stdout, "\n\nComputing Hyper-Sphere with radius: %lf ...", radius); fflush(stdout);
-
 	gettimeofday(&tic,NULL);
 	alpha = hyperSphere(Train, radius);
-	if(!learningPhase && !kmax){
-		lNode = orderedListLabel(Train, nGaussians, root);
-		nsample4class = countClasses(Train, nGaussians, root);
-	}
+	lNode = orderedListLabel(Train, nGaussians, root);
+	nsample4class = countClasses(Train, nGaussians, root);
 	gettimeofday(&toc,NULL);
-
 	fprintf(stdout, " OK\n"); fflush(stdout);	
+
 	time += (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0);
-	fprintf(stdout, "\nAllocating training time: %f seconds\n", time); fflush(stdout);
+	fprintf(stdout, "\nAllocating training time: %f seconds\n", (((toc.tv_sec-tic.tv_sec)*1000.0 + (toc.tv_usec-tic.tv_usec)*0.001)/1000.0)); fflush(stdout);
 
 	sprintf(fileName,"%s.time",argv[train_set]);
 	f = fopen(fileName,"a");
@@ -300,7 +290,7 @@ int main(int argc, char **argv){
 	gsl_vector_free(nsample4class);
 	gsl_vector_free(nGaussians);
 	gsl_vector_free(root);
-    free(gaussians);
+	free(gaussians);
 	
     fprintf(stdout,"OK\n\n");
 

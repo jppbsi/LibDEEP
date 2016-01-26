@@ -245,9 +245,9 @@ gsl_vector *loadLabels(Subgraph *Train)
 
 
 // GRID-SEARCH (KMAX, SIGMA AND RADIUS) IN EVALUTAING SET
-gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_vector  *nsample4class, double maxRadius, double minRadius, gsl_vector *nGaussians, int kmax){  
+gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, double radius, int kmax){  
 	
-    double sigma=-0.05, radius;
+    double sigma=-0.05;
 	float acc, bestAcc = -1.0;
 	int i,k;
 	Subgraph *g = NULL;
@@ -255,17 +255,18 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 	gsl_vector *alpha = hyperSphere(Train, 0);
 	gsl_vector *BestParameters = gsl_vector_calloc(3);	
 	
+	
+	double maxRadius = maxDistance(Train);
+	double minRadius = minDistance(Train);
+	
 	gsl_vector **gaussians = (gsl_vector **)malloc(4 * sizeof(gsl_vector *));
-	gaussians[0] = nGaussians;// Start with nLabels
+	gaussians[0] = NULL;//nGaussians
 	gaussians[1] = NULL;//root
-	gaussians[2] = lNode;//lNode global
-	gaussians[3] = nsample4class;//nsample4class global
+	gaussians[2] = NULL;//lNode
+	gaussians[3] = NULL;//nsample4class
 
-	//GRID-SEARCH FOR PARAMTER KAMX FOR OPF_CLUSTER	
+	//grid-search for paramter kamx for opf_cluster	
 	if(kmax > 0){
-		gaussians[2] = NULL;//lNode local
-		gaussians[3] = NULL;//nsample4class local
-		
 		for(k = 1; k <= kmax; k++){
 			fprintf(stdout,"\nTrying kmax: %i ", k); fflush(stdout);
 			
@@ -287,6 +288,7 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 			
 			opf_OPFClassifying(g, Eval);
 			// opf_OPFknnClassify(g, Eval);
+			
 			acc = opf_Accuracy(Eval);
 			if(acc > bestAcc){
 				gsl_vector_set(BestParameters,0,k);
@@ -313,14 +315,21 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 		gaussians[2] = orderedListLabel(g, gaussians[0], gaussians[1]);
 		gaussians[3] = countClasses(g, gaussians[0], gaussians[1]);
 	}
+	else{
+		gaussians[0] = loadLabels(Train);// nGaussians <- Start with nLabels
+		gaussians[1] = NULL;//root
+		gaussians[2] = orderedListLabel(Train, gaussians[0], gaussians[1]);//lNode global
+		gaussians[3] = countClasses(Train, gaussians[0], gaussians[1]);//nsample4class global
+	}
 
-
+	//grid-search for PNN
+	if(radius == -1) maxRadius = 0;
 	
-	//GRID-SEARCH FOR SIGMA AND RADIUS
+	//grid-search for sigma and radius
 	bestAcc = -1.0;
 	for(sigma = 0.000000001; sigma <= 1.0; ){
 		sigma+=0.05;
-		for(radius = 0.000001; radius <= maxRadius; radius+=(minRadius+radius/7)){
+		for(radius = 0; radius <= maxRadius; radius+=(minRadius+radius/7+0.000001)){
 			fprintf(stdout,"\nTrying sigma: %lf and radius: %lf", sigma, radius); fflush(stdout);
 
 			gsl_vector_free(alpha);
@@ -336,18 +345,16 @@ gsl_vector *gridSearch(Subgraph *Train, Subgraph *Eval, gsl_vector *lNode, gsl_v
 	            bestAcc = acc;
 	        }
 			
-		}
+			}
 	}
 
 
 	gsl_vector_free(alpha);
 	DestroySubgraph(&g);
-	if(kmax){
-		gsl_vector_free(gaussians[0]);
-		gsl_vector_free(gaussians[1]);
-		gsl_vector_free(gaussians[2]);
-		gsl_vector_free(gaussians[3]);
-	}
+	gsl_vector_free(gaussians[0]);
+	gsl_vector_free(gaussians[1]);
+	gsl_vector_free(gaussians[2]);
+	gsl_vector_free(gaussians[3]);
 	free(gaussians);
 	
     return BestParameters; 
