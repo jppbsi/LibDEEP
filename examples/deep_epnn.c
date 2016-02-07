@@ -89,7 +89,7 @@ int main(int argc, char **argv){
 																
 			case 'l':
 				learningPhase = atoi(argv[i]);
-				if((learningPhase < 0 ) || (learningPhase > 1 )){
+				if((learningPhase < 0 ) || (learningPhase > 2 )){
 					fprintf(stderr,"\n*** Unknown parameter for learning. ***\n");
 					info();
 					help_usage();
@@ -171,6 +171,16 @@ int main(int argc, char **argv){
 		sigma = gsl_vector_get(BestParameters, 1);
 		radius = gsl_vector_get(BestParameters, 2);
 		
+		
+		if(learningPhase == 2){
+			fprintf(stdout, "\nMerge Training set and Evaluating set to Training Phase"); fflush(stdout);
+			Subgraph *Merge = opf_MergeSubgraph(Train, Eval);
+			DestroySubgraph(&Train);
+			Train = CopySubgraph(Merge);
+			DestroySubgraph(&Merge);
+		}
+		
+		
 		gsl_vector_free(BestParameters);
 		DestroySubgraph(&Eval);
 
@@ -185,7 +195,6 @@ int main(int argc, char **argv){
 		fprintf(f,"%f\n",time);
 		fclose(f);
 	}
-		
 		
 
 	//TRAINING PHASE
@@ -208,9 +217,9 @@ int main(int argc, char **argv){
 	fprintf(stdout, "\nAllocating training set [%s] ...", argv[train_set]); fflush(stdout);
 	if(radius) fprintf(stdout, "\n\nComputing Hyper-Sphere with radius: %lf ...", radius); fflush(stdout);
 	gettimeofday(&tic,NULL);
-	alpha = hyperSphere(Train, radius);
 	lNode = orderedListLabel(Train, nGaussians, root);
 	nsample4class = countClasses(Train, nGaussians, root);
+	alpha = hyperSphere(Train, radius);
 	gettimeofday(&toc,NULL);
 	fprintf(stdout, " OK\n"); fflush(stdout);	
 
