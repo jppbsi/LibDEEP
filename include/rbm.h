@@ -55,6 +55,14 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
 double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Bernoulli RBM by Constrative Divergence for image reconstruction regarding DBMs at the bottom layer
 double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Bernoulli RBM by Constrative Divergence for image reconstruction regarding DBMs at the top layer 
 double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Bernoulli RBM by Constrative Divergence for image reconstruction regarding DBMs at the intermediate layers
+double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size);/* It trains a Bernoulli RBM by Persistent Constrative Divergence for image reconstruction regarding DBMs at the bottom layer */
+double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size);/* It trains a Bernoulli RBM by Persistent Constrative Divergence for image reconstruction regarding DBMs at the top layer */
+double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size);/* It trains a Bernoulli RBM by Constrative Divergence for image reconstruction regarding DBMs at the intermediate layers */
+
+//double Bernoulli_TrainingRBMbyFPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size);/* It trains a Bernoulli RBM by Persistent Fast Constrative Divergence for //image reconstruction regarding DBMs at the bottom layer */
+//double Bernoulli_TrainingRBMbyFPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size);/* It trains a Bernoulli RBM by Persistent Fast Constrative Divergence for image reconstruction regarding DBMs at the top layer */
+//double Bernoulli_TrainingRBMbyFPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size);/* It trains a Bernoulli RBM by Fast Constrative Divergence for image reconstruction regarding DBMs at the intermediate layers */
+
 /*Gaussian-Bernoulli RBM training */
 double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Discriminative Gaussian-Bernoulli RBM by Constrative Divergence for pattern classification
 

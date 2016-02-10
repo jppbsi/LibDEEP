@@ -62,21 +62,50 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
     int i, j, k, l;
     Dataset *tmp1 = NULL, *tmp2 = NULL;   
  
-    
+    error = 0;
     tmp1 = CopyDataset(D);
     
     for (i = 0; i < d->n_layers;i++){
-        
-        if(i == 0){
-            fprintf(stderr,"\n Training bottom layer ... ");
-            error = Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
-        }else if(i == d->n_layers - 1){
-            fprintf(stderr,"\n Training top layer ... ");
-            error += Bernoulli_TrainingRBMbyCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
-        }else{
-	    fprintf(stderr,"\n Training layer %i ... ",i+1);
-            error += Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
-        }
+		switch (LearningType){
+		    case 1:
+				if(i == 0){
+				    fprintf(stderr,"\n Training bottom layer ... ");
+				    error = Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
+				}else if(i == d->n_layers - 1){
+				    fprintf(stderr,"\n Training top layer ... ");
+				    error += Bernoulli_TrainingRBMbyCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
+				}else{
+				fprintf(stderr,"\n Training layer %i ... ",i+1);
+				    error += Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
+				}
+			break;
+		    case 2:
+				if(i == 0){
+				    fprintf(stderr,"\n Training bottom layer ... ");
+				    error = Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
+				}else if(i == d->n_layers - 1){
+				    fprintf(stderr,"\n Training top layer ... ");
+				    error += Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
+				}else{
+				fprintf(stderr,"\n Training layer %i ... ",i+1);
+				    error += Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
+				}
+			break;
+		   /* case 3:
+				if(i == 0){
+				    fprintf(stderr,"\n Training bottom layer ... ");
+
+							
+				    error = Bernoulli_TrainingRBMbyFPCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
+				}else if(i == d->n_layers - 1){
+				    fprintf(stderr,"\n Training top layer ... ");
+				    error += Bernoulli_TrainingRBMbyFPCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
+				}else{
+				fprintf(stderr,"\n Training layer %i ... ",i+1);
+				    error += Bernoulli_TrainingRBMbyFPCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
+				}
+			break;*/
+		}
         fprintf(stderr,"OK");
 	
 		/* making the hidden layer of RBM i to be the visible layer of RBM i+1 */
