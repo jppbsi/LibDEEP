@@ -196,8 +196,9 @@ int main(int argc, char **argv){
 		fclose(f);
 	}
 		
-
+	
 	//TRAINING PHASE
+	time = 0.0;
 	if(kmax){
 		fprintf(stdout, "\n\nClustering [%s] with kmax: %i... ",argv[train_set], kmax); fflush(stdout);
 				
