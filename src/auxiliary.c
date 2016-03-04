@@ -289,6 +289,25 @@ gsl_vector *node2gsl_vector(float *x, int n){
     }
 }
 
+/* It converts a graph to a gsl_matrix */
+gsl_matrix *Subgraph2gsl_matrix(Subgraph *g){
+    if(!g){
+	fprintf(stderr,"\nThere is no graph allocated @Subgraph2gsl_matrix.\n");
+	return NULL;
+    }
+    
+    gsl_matrix *out = NULL;
+    int i, j;
+    
+    out = gsl_matrix_calloc(g->nnodes, g->nfeats);
+    
+    for(i = 0; i < g->nnodes; i++)
+	for(j = 0; j < g->nfeats; j++)
+	    gsl_matrix_set(out, i, j, (double)g->node[i].feat[j]);
+    
+    return out;
+}
+
 /* It generates a random seed */
 unsigned long int random_seed_deep(){
     struct timeval tv;

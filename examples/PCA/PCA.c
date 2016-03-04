@@ -10,9 +10,11 @@ int main(int argc, char **argv){
     Subgraph *in = NULL, *out = NULL;
     double p = atof(argv[3]);
     
+    in = ReadSubgraph(argv[1]);
+    
     //out = PCA(in, p);
-    gsl_matrix *M = gsl_matrix_alloc(2,2);
-    gsl_matrix_set(M, 0, 0, 1);gsl_matrix_set(M, 0, 1, 2);gsl_matrix_set(M, 1, 0, 1); gsl_matrix_set(M, 1, 1, 2);
+    gsl_matrix *M = NULL;
+    M = Subgraph2gsl_matrix(in);
     gsl_matrix *cov = CovarianceMatrix(M);
     
     int i, j;

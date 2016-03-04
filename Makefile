@@ -24,6 +24,7 @@ $(OBJ)/regression.o \
 $(OBJ)/logistic.o \
 $(OBJ)/dbm.o \
 $(OBJ)/dbn.o \
+$(OBJ)/pca.o \
 $(OBJ)/epnn.o \
 
 	ar csr $(LIB)/libDeep.a \
@@ -36,6 +37,7 @@ $(OBJ)/regression.o \
 $(OBJ)/logistic.o \
 $(OBJ)/dbm.o \
 $(OBJ)/dbn.o \
+$(OBJ)/pca.o \
 $(OBJ)/epnn.o \
 
 
@@ -75,6 +77,9 @@ $(OBJ)/epnn.o: $(SRC)/epnn.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/epnn.c \
 	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/epnn.o `pkg-config --cflags --libs gsl`
 
+$(OBJ)/pca.o: $(SRC)/pca.c
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/pca.c \
+	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/pca.o `pkg-config --cflags --libs gsl`
 
 deep_epnn:
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_epnn.c \

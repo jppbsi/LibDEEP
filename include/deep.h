@@ -36,6 +36,7 @@ extern "C" {
 #include "logistic.h"
 #include "dbm.h"
 #include "epnn.h"
+#include "pca.h"
 	
 
 #ifdef __cplusplus
