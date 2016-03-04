@@ -61,15 +61,7 @@ Subgraph *PCA(Subgraph *in, double p){
 
         gsl_vector_free(v);
     }
-    
-    fprintf(stderr,"\nout->nnodes: %d and out->nfeats: %d and k: %d",out->nnodes, out->nfeats, k);
-    for(i = 0; i < out->nnodes; i++){
-        for(j = 0; j < out->nfeats; j++){
-            fprintf(stderr,"[%d,%d]: %f", i+1,j+1, out->node[i].feat[j]);
-        }
-        fprintf(stderr,"\n");
-    }
-    
+        
     gsl_matrix_free(cov);
     gsl_matrix_free(tcov);
     gsl_matrix_free(tmp_cov);
