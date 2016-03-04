@@ -12,8 +12,8 @@ int main(int argc, char **argv){
     
     in = ReadSubgraph(argv[1]);
     
-    //out = PCA(in, p);
-    gsl_matrix *M = NULL;
+    out = PCA(in, p);
+    /*gsl_matrix *M = NULL;
     M = Subgraph2gsl_matrix(in);
     gsl_matrix *cov = CovarianceMatrix(M);
     
@@ -23,7 +23,7 @@ int main(int argc, char **argv){
             fprintf(stderr,"\ncov[%d][%d]: %lf", i, j, gsl_matrix_get(cov, i, j));
     
     gsl_matrix_free(M);
-    gsl_matrix_free(cov);
+    gsl_matrix_free(cov);*/
     DestroySubgraph(&in);
     DestroySubgraph(&out);
     

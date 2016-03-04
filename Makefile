@@ -63,23 +63,23 @@ $(OBJ)/dbn.o: $(SRC)/dbn.c
 
 $(OBJ)/regression.o: $(SRC)/regression.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/regression.c \
-	-L $(LIB) -L $(OPF_DIR)/lib -lOPF -o $(OBJ)/regression.o `pkg-config --cflags --libs gsl`
+	 -o $(OBJ)/regression.o `pkg-config --cflags --libs gsl`
 
 $(OBJ)/logistic.o: $(SRC)/logistic.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/logistic.c \
-	-L $(LIB) -L $(OPF_DIR)/lib -lOPF -o $(OBJ)/logistic.o `pkg-config --cflags --libs gsl -lm`
+	 -o $(OBJ)/logistic.o
 
 $(OBJ)/dbm.o: $(SRC)/dbm.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/dbm.c \
-	-L $(LIB) -L $(OPF_DIR)/lib -lOPF -o $(OBJ)/dbm.o `pkg-config --cflags --libs gsl`
+	-o $(OBJ)/dbm.o
 
 $(OBJ)/epnn.o: $(SRC)/epnn.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/epnn.c \
-	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/epnn.o `pkg-config --cflags --libs gsl`
+	-o $(OBJ)/epnn.o
 
 $(OBJ)/pca.o: $(SRC)/pca.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/pca.c \
-	-L $(OPF_DIR)/lib -lOPF -o $(OBJ)/pca.o `pkg-config --cflags --libs gsl`
+	-o $(OBJ)/pca.o
 
 deep_epnn:
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_epnn.c \
