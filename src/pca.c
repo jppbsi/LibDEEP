@@ -8,7 +8,7 @@
 Parameters
 in: input graph
 p: percentage of the total number of dimensions to generate the new dataset ]0,1] */
-Subgraph *PCA(Subgraph *in, int p){
+Subgraph *PCA(Subgraph *in, double p){
     if(!in){
         fprintf(stderr,"\nNo input graph defined @PCA.\n");
         return NULL;
@@ -25,6 +25,7 @@ Subgraph *PCA(Subgraph *in, int p){
     gsl_matrix *V = gsl_matrix_alloc(in->nfeats, in->nfeats), *tmp_cov = NULL, *aux = NULL, *r = NULL;
     gsl_vector *work = gsl_vector_alloc(in->nfeats), *S = gsl_vector_alloc(in->nfeats), *v = NULL;
     
+    if (k < 1) k = 1;
     tmp = CopySubgraph(in);
     opf_NormalizeFeatures(tmp);
     M = Subgraph2gsl_matrix(tmp);
@@ -46,10 +47,11 @@ Subgraph *PCA(Subgraph *in, int p){
     
     out = CreateSubgraph(in->nnodes);
     out->nfeats = k;
+    out->nlabels = in->nlabels;
     for(i = 0; i < out->nnodes; i++){
         out->node[i].feat = AllocFloatArray(k);
         out->node[i].truelabel = in->node[i].truelabel;
-        out->node[i].position = out->node[i].position;
+        out->node[i].position = in->node[i].position;
         v = node2gsl_vector(in->node[i].feat, in->nfeats);
         gsl_matrix_set_col(aux, 0, v);
         
