@@ -31,12 +31,12 @@ gsl_matrix *CovarianceMatrix(gsl_matrix *M){
     double v;
 
     cov = gsl_matrix_calloc(M->size2, M->size2);
-    for (i = 0; i < M->size1; i++){
-        for (j = 0; j < M->size2; j++){
+    for (i = 0; i < M->size2; i++){
+        for (j = i; j < M->size2; j++){
             a = gsl_matrix_column (M, i);
             b = gsl_matrix_column (M, j);
             v = gsl_stats_covariance (a.vector.data, a.vector.stride, b.vector.data, b.vector.stride, a.vector.size);
-            gsl_matrix_set(cov, i, j, v);
+            gsl_matrix_set(cov, i, j, v); gsl_matrix_set(cov, j, i, v); /* covariance matrices are symmetric */
         }
     }
     
