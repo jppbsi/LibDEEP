@@ -45,6 +45,7 @@ Subgraph *PCA(Subgraph *in, int p){
     r = gsl_matrix_calloc(k, 1);
     
     out = CreateSubgraph(in->nnodes);
+    out->nfeats = k;
     for(i = 0; i < out->nnodes; i++){
         out->node[i].feat = AllocFloatArray(k);
         out->node[i].truelabel = in->node[i].truelabel;
@@ -54,14 +55,18 @@ Subgraph *PCA(Subgraph *in, int p){
         
         gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, tcov, aux, 0.0, r); /* it performs the mapping to the k-dimensional space */
         for(j = 0; j < k; j++)
-            out->node[i].feat[j] = gsl_matrix_get(r, j, 0);
+            out->node[i].feat[j] = (float)gsl_matrix_get(r, j, 0);
 
         gsl_vector_free(v);
     }
     
-    //for(i = 0; i < cov->size1; i++)
-      //  for(j = 0; j < cov->size2; j++)
-        //    fprintf(stderr,"\ncov[%d][%d]: %lf", i, j, gsl_matrix_get(cov, i, j));
+    fprintf(stderr,"\nout->nnodes: %d and out->nfeats: %d and k: %d",out->nnodes, out->nfeats, k);
+    for(i = 0; i < out->nnodes; i++){
+        for(j = 0; j < out->nfeats; j++){
+            fprintf(stderr,"[%d,%d]: %f", i+1,j+1, out->node[i].feat[j]);
+        }
+        fprintf(stderr,"\n");
+    }
     
     gsl_matrix_free(cov);
     gsl_matrix_free(tcov);
