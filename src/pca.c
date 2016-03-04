@@ -53,15 +53,15 @@ Subgraph *PCA(Subgraph *in, int p){
         gsl_matrix_set_col(aux, 0, v);
         
         gsl_blas_dgemm (CblasNoTrans, CblasNoTrans, 1.0, tcov, aux, 0.0, r); /* it performs the mapping to the k-dimensional space */
-        for(j = 0; j < out->nnodes; j++)
+        for(j = 0; j < k; j++)
             out->node[i].feat[j] = gsl_matrix_get(r, j, 0);
 
         gsl_vector_free(v);
     }
     
-    for(i = 0; i < cov->size1; i++)
-        for(j = 0; j < cov->size2; j++)
-            fprintf(stderr,"\ncov[%d][%d]: %lf", i, j, gsl_matrix_get(cov, i, j));
+    //for(i = 0; i < cov->size1; i++)
+      //  for(j = 0; j < cov->size2; j++)
+        //    fprintf(stderr,"\ncov[%d][%d]: %lf", i, j, gsl_matrix_get(cov, i, j));
     
     gsl_matrix_free(cov);
     gsl_matrix_free(tcov);
