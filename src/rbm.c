@@ -109,7 +109,7 @@ void DestroyRBM(RBM **m){
         if((*m)->c) gsl_vector_free((*m)->c);
 	if((*m)->r) gsl_vector_free((*m)->r);
 	if((*m)->s) gsl_vector_free((*m)->s);
-        if((*m)->W) gsl_matrix_free((*m)->W);
+	if((*m)->W) gsl_matrix_free((*m)->W);
         if((*m)->U) gsl_matrix_free((*m)->U);
         free(*m);
         *m = NULL;
@@ -690,14 +690,14 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-	    
-	    // It computes r for dropping out hidden units
-	    InitializeBias4DropoutHiddenUnits(m, p);
-	    
-	    // It computes s for dropping out visible units
-	    InitializeBias4DropoutVisibleUnits(m, q);
             
             for(t = 0; t < batch_size; t++){
+		
+		// It computes r for dropping out hidden units
+		InitializeBias4DropoutHiddenUnits(m, p);
+	    
+		// It computes s for dropping out visible units
+		InitializeBias4DropoutVisibleUnits(m, q);
     
                 if(z < D->size){
             
