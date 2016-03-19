@@ -14,6 +14,7 @@ RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_la
     m->n_visible_layer_neurons = n_visible_layer_neurons;
     m->n_hidden_layer_neurons = n_hidden_layer_neurons;
     m->n_labels = n_labels;
+	m->t = 1.0;
     
     m->v = NULL;
     m->v = gsl_vector_alloc(n_visible_layer_neurons);
@@ -3150,8 +3151,8 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
         for(i = 0; i < m->n_visible_layer_neurons; i++)
             tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j);
-	
-	tmp = SigmoidLogistic(tmp);
+		tmp+=tmp/m->t;
+		tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
     
@@ -3171,6 +3172,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4DBM(RBM *m, gsl_vector *v){
         for(i = 0; i < m->n_visible_layer_neurons; i++)
             tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j)+gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j);
+		tmp+=tmp/m->t;
 		tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
@@ -3189,6 +3191,7 @@ void FASTgetProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v, gsl_vector *pr
 	    for(i = 0; i < m->n_visible_layer_neurons; i++)
 	        tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
 	    tmp+=gsl_vector_get(m->b, j);
+		tmp+=tmp/m->t;
 	    tmp = SigmoidLogistic(tmp);
 	    gsl_vector_set(prob_h, j, tmp);
 	}
