@@ -26,6 +26,8 @@ double BernoulliDBMReconstruction(Dataset *D, DBM *d);/* It reconstructs an inpu
 
 gsl_vector *getProbabilityTurningOnDBMIntermediateLayersOnDownPass(RBM *m, gsl_vector *h, RBM *beneath_layer);/* It computes the probability of turning on an intermediate layer of a DBM, as show in Eq. 28 and 29  */
 
+void saveDBMParameters(DBM *d, char *file);/* It saves DBM weight matrixes and bias vectors */
+
 //double DBMReconstruction(Dataset *D, DBM *d);
 
 /* Probability of turning on intermadiate layers in a DBM */

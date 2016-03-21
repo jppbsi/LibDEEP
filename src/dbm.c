@@ -210,6 +210,40 @@ gsl_vector *getProbabilityTurningOnDBMIntermediateLayersOnDownPass(RBM *m, gsl_v
     return inter;
 }
 
+/* It saves DBM weight matrixes and bias vectors */
+void saveDBMParameters(DBM *d, char *file){
+    FILE *fpout = NULL;
+	int id;
+    int i, j;
+
+    for(id = 0; id < d->n_layers; id++){
+    	fpout = fopen(file,"a");
+		fprintf(fpout,"W%d ",id);
+		for(i = 0; i < d->m[id]->n_visible_layer_neurons; i++){
+		    for(j = 0; j < d->m[id]->n_hidden_layer_neurons; j++){
+		        fprintf(fpout,"%f ",gsl_matrix_get(d->m[id]->W, i, j));
+		    }
+		}
+		fprintf(fpout,"\n");
+
+		fprintf(fpout,"b%d ",id);
+		for(i = 0; i < d->m[id]->n_hidden_layer_neurons; i++)
+		    fprintf(fpout,"%f ",gsl_vector_get(d->m[id]->b, i));
+
+		fprintf(fpout,"\n");
+
+		fprintf(fpout,"a%d ",id);
+		for(i = 0; i < d->m[id]->n_visible_layer_neurons; i++)
+		    fprintf(fpout,"%f ",gsl_vector_get(d->m[id]->a, i));
+
+		fprintf(fpout,"\n");
+		fprintf(fpout,"\n");
+
+		fclose(fpout);
+	}
+}
+
+
 
 /*double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){
     gsl_vector *h2 = NULL *h1 = NULL;

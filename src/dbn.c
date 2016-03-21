@@ -428,3 +428,38 @@ Subgraph *DBN2Subgraph(DBN *d, Dataset *D){
         return NULL;
     }
 }
+
+/* It saves DBN weight matrixes and bias vectors */
+void saveDBNParameters(DBN *d, char *file){
+	int id;
+    FILE *fpout = NULL;
+    
+    int i, j;
+
+    for(id = 0; id < d->n_layers; id++){
+		fpout = fopen(file,"a");
+		fprintf(fpout,"W%d ",id);
+		for(i = 0; i < d->m[id]->n_visible_layer_neurons; i++){
+		    for(j = 0; j < d->m[id]->n_hidden_layer_neurons; j++){
+		        //printf("\n[%d] [%d] = %f ", i, j, gsl_matrix_get(d->m[id]->W, i, j));
+		        fprintf(fpout,"%f ",gsl_matrix_get(d->m[id]->W, i, j));
+		    }
+		}
+		fprintf(fpout,"\n");
+
+		fprintf(fpout,"b%d ",id);
+		for(i = 0; i < d->m[id]->n_hidden_layer_neurons; i++)
+		    fprintf(fpout,"%f ",gsl_vector_get(d->m[id]->b, i));
+
+		fprintf(fpout,"\n");
+
+		fprintf(fpout,"a%d ",id);
+		for(i = 0; i < d->m[id]->n_visible_layer_neurons; i++)
+		    fprintf(fpout,"%f ",gsl_vector_get(d->m[id]->a, i));
+
+		fprintf(fpout,"\n");
+		fprintf(fpout,"\n");
+
+		fclose(fpout);
+	}
+}
