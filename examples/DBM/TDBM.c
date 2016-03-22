@@ -73,16 +73,6 @@ int main(int argc, char **argv){
         d->m[i]->eta_max = gsl_vector_get(eta_max,i); 
 		d->m[i]->t = t;
     }   
-    for(i = 0; i < d->n_layers; i++){
-		fprintf(stderr,"\ni = %d", i+1);
-		fprintf(stderr,"\neta = %f", d->m[i]->eta);
-		fprintf(stderr,"\nlambda = %f",d->m[i]->lambda);
-		fprintf(stderr,"\nalpha = %f", d->m[i]->alpha);
-		fprintf(stderr,"\neta_min = %f", d->m[i]->eta_min);
-		fprintf(stderr,"\neta_max = %f", d->m[i]->eta_max);
-		fprintf(stderr,"\nn_hidden_layer_neurons = %d", d->m[i]->n_hidden_layer_neurons);
-		fprintf(stderr,"\nT = %f", d->m[i]->t);
-	}
     
     fprintf(stderr,"\nOk\n");
     
