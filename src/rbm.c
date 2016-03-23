@@ -348,11 +348,15 @@ void PrintLabelWeights(RBM *m){
 
 /* It prints the visible units */
 void PrintVisibleUnits(RBM *m){
-    int i;
+    int i, c = 0;
     
     if(m){
-        for(i = 0; i < m->n_visible_layer_neurons; i++)
+        for(i = 0; i < m->n_visible_layer_neurons; i++) {
             fprintf(stderr,"\nv[%d]: %lf", i, gsl_vector_get(m->v, i));
+	    if (gsl_vector_get(m->v, i) == 1)
+		c++;
+        }
+	fprintf(stderr, "\n\nActive Visible Neurons: %d", c);
     }else fprintf(stderr,"\nRBM not allocated @PrintVisibleUnits.\n");
 }
 
@@ -366,7 +370,7 @@ void PrintHiddenUnits(RBM *m){
 	    if (gsl_vector_get(m->h, i) == 1)
 		c++;
 	}
-	fprintf(stderr, "\n\nActive Neurons: %d", c);
+	fprintf(stderr, "\n\nActive Hidden Neurons: %d", c);
     }else fprintf(stderr,"\nRBM not allocated @PrintHiddenUnits.\n");
 }
 
@@ -669,9 +673,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
-	error = 0;
-	
-    //fprintf(stdout, "Epoch | Number of Mini-Batch | Cummulative Error | Cummulative PL\n");
+    error = 0;
         
     // for each epoch
     for(e = 1; e <= n_epochs; e++){
@@ -717,10 +719,10 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
                     for(i = 1; i <= n_CD_iterations; i++){
 			
                         // It computes the P(h=1|v1), i.e., it computes h1
-                        tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->s, m->v);
+                        tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
-                            if(gsl_vector_get(tmp_probh1, j) >= sample && gsl_vector_get(m->r, j) == 1) gsl_vector_set(m->h, j, 1.0);
+                            if(gsl_vector_get(tmp_probh1, j) >= sample) gsl_vector_set(m->h, j, 1.0);
                             else gsl_vector_set(m->h, j, 0.0);
                         }
 			
@@ -731,20 +733,21 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
                         gsl_vector_free(tmp_probh1);
                     
                         // It computes the P(v2=1|h1), i.e., it computes v2
-                        tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, m->h);
+                        tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->s, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
-                            if(gsl_vector_get(tmp_probvn, j) >= sample && gsl_vector_get(m->s, j) == 1) gsl_vector_set(m->v, j, 1.0);
+                            if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+			                
                         // It computes the P(h2=1|v2), i.e., it computes h2 (hn)
-                        tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->s, m->v);
+                        tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
                             sample = gsl_rng_uniform(r);
-                            if(gsl_vector_get(tmp_probhn, j) >= sample && gsl_vector_get(m->r, j) == 1) gsl_vector_set(m->h, j, 1.0);
+                            if(gsl_vector_get(tmp_probhn, j) >= sample) gsl_vector_set(m->h, j, 1.0);
                             else gsl_vector_set(m->h, j, 0.0);
                         }
+						
                         if (i == n_CD_iterations){ //in case of n_CD_iterations > 1
                             gsl_vector_memcpy(probhn, tmp_probhn);
                             gsl_vector_add(ctr_probhn, probhn);
@@ -778,8 +781,6 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
                     z++;
                 }
             }
-	    
-	    //fprintf(stdout,"%d %d %lf %lf\n", e, n, error, pl);
         
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
@@ -2986,12 +2987,12 @@ double BernoulliRBMReconstruction(Dataset *D, RBM *m){
 }
 
 /* It reconstructs an input dataset given a trained RBM */
-double BernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p){
+double BernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p, double q){
     double error = 0.0;
-    int i;
+    int i, j;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
     
-    gsl_matrix_scale(m->W, p);
+    gsl_matrix_scale(m->W, p*q);
     
     for(i = 0; i < D->size; i++){
         
@@ -3255,7 +3256,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h){
 }
 
 /* It computes the probability of dropping out hidden units and turning on a visible unit j, as described by Equation 11 */
-gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl_vector *r, gsl_vector *h){
+gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl_vector *s, gsl_vector *h){
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
@@ -3265,11 +3266,10 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
-	    if (gsl_vector_get(r, i) == 1)
-		tmp+=(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i));
+	    tmp+=(gsl_vector_get(h, i)*gsl_matrix_get(m->W, j, i));
         tmp+=gsl_vector_get(m->a, j);
 	
-        tmp = SigmoidLogistic(tmp);
+        tmp = SigmoidLogistic(tmp)*gsl_vector_get(s, j);
         gsl_vector_set(v, j, tmp);
     }
     
@@ -3277,7 +3277,7 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl
 }
 
 /* It computes the probability of dropping out visible units and turning on a hidden unit j, as described by Equation 11 */
-gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl_vector *s, gsl_vector *v){
+gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl_vector *r, gsl_vector *v){
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
@@ -3287,11 +3287,10 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_visible_layer_neurons; i++)
-	    if (gsl_vector_get(s, i) == 1)
-		tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
+	    tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j);
 	
-	tmp = SigmoidLogistic(tmp);
+	tmp = SigmoidLogistic(tmp)*gsl_vector_get(r, j);
         gsl_vector_set(h, j, tmp);
     }
     
