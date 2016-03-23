@@ -73,7 +73,7 @@ int main(int argc, char **argv){
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nRunning RBM for reconstruction ... ");
-    errorTEST = BernoulliRBMReconstructionwithDropout(DatasetTest, m, p);
+    errorTEST = BernoulliRBMReconstructionwithDropout(DatasetTest, m, p, q);
     fprintf(stderr,"\nOK\n");
         
     fp = fopen(argv[3], "a");

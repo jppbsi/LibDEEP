@@ -2989,7 +2989,7 @@ double BernoulliRBMReconstruction(Dataset *D, RBM *m){
 /* It reconstructs an input dataset given a trained RBM */
 double BernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p, double q){
     double error = 0.0;
-    int i, j;
+    int i;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
     
     gsl_matrix_scale(m->W, p*q);
