@@ -77,7 +77,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
 
 /* Bernoulli RBM reconstruction/classification */
 double BernoulliRBMReconstruction(Dataset *D, RBM *m); /* It reconstructs an input dataset given a trained RBM */
-double BernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p); /* It reconstructs an input dataset given a trained RBM with Dropout */
+double BernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p, double q); /* It reconstructs an input dataset given a trained RBM with Dropout */
 double DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m); /* It classifies an input dataset given a trained RBM and it outputs the classification error */
 
 /* RMB image reconstruction */
@@ -96,8 +96,8 @@ gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *
 gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit(RBM *m, gsl_vector *y); //It computes the probability of turning on a hidden unit j considering Discriminative RBMs and Gaussian visible units
 gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit(RBM *m, gsl_vector *h); //It computes the probability of turning on a visible unit i considering Discriminative RBMs and Gaussian visible units
 gsl_vector *getDiscriminativeProbabilityLabelUnit(RBM *m); /* It computes the probability of label unit (y) given the hidden (h) one, i.e., P(y|h) */
-gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl_vector *r, gsl_vector *h); // It computes the probability of dropping out hidden units and turning on a visible unit j, as described by Equation 11
-gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl_vector *s, gsl_vector *v); // It computes the probability of dropping out visible units and turning on a hidden unit j, as described by Equation 11
+gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl_vector *s, gsl_vector *h); // It computes the probability of dropping out hidden units and turning on a visible unit j, as described by Equation 11
+gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl_vector *r, gsl_vector *v); // It computes the probability of dropping out visible units and turning on a hidden unit j, as described by Equation 11
 double getReconstructionError(gsl_vector *input, gsl_vector *output); // It computes the minimum square error among input and output
 double getPseudoLikelihood(RBM *m, gsl_vector *x); //it computes the pseudo-likelihood of a sample x in an RBM
 
