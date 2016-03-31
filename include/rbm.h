@@ -53,6 +53,7 @@ void PrintHiddenUnits(RBM *m); // It prints the hidden units
 void PrintVisibleDropoutUnits(RBM *m); // It prints the visible dropout units
 void PrintHiddenDropoutUnits(RBM *m); // It prints the hidden dropout units
 void SaveWeights(RBM *m, char *path, int height, int width); // It writes the weight matrix as PGM images
+void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, int height);// It writes the weight matrix as PGM images without using CV
 
 /* Bernoulli-Bernoulli RBM training */
 double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); // It trains a Bernoulli RBM by Constrative Divergence for image reconstruction (binary images)

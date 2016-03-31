@@ -38,5 +38,6 @@ gsl_vector *ForwardPass(gsl_vector *s, DBN *d); /* It executes the forward pass 
 Subgraph *DBN2Subgraph(DBN *d, Dataset *D); /* It generates a subgraph using the learned features from the top layer of the DBN over the dataset */
 
 void saveDBNParameters(DBN *d, char *file); /* It saves DBN weight matrixes and bias vectors */
+void loadDBNParametersFromFile(DBN *d, char *file); /* It loads DBN weight matrixes and bias vectors from file*/
 
 #endif

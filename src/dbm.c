@@ -243,6 +243,40 @@ void saveDBMParameters(DBM *d, char *file){
 	}
 }
 
+/* It loads DBM weight matrixes and bias vectors from file*/
+void loadDBMParametersFromFile(DBM *d, char *file){
+    int i, j, w;
+    float values;
+    char aux[30];
+
+    FILE *fpin = NULL;
+    fpin = fopen(file,"rt");
+
+    for(w = 0; w < d->n_layers; w++){ //load w
+
+        fscanf(fpin,"%s",aux);
+        for(i = 0; i < d->m[w]->n_visible_layer_neurons; i++){
+            for(j = 0; j < d->m[w]->n_hidden_layer_neurons; j++){
+                fscanf(fpin,"%f",&values);
+                gsl_matrix_set(d->m[w]->W, i, j, values);
+            }
+        }
+
+        fscanf(fpin,"%s",aux); //load b
+        for(j = 0; j < d->m[w]->n_hidden_layer_neurons; j++){
+            fscanf(fpin,"%f",&values);
+            gsl_vector_set(d->m[w]->b, j, values);
+        }
+
+        fscanf(fpin,"%s",aux); //load a
+        for(i = 0; i < d->m[w]->n_visible_layer_neurons; i++){
+            fscanf(fpin,"%f",&values);
+            gsl_vector_set(d->m[w]->a, i, values);
+        }
+    }
+    fclose(fpin);
+}
+
 
 
 /*double DBMDiscriminativeFineTunning(Dataset *D, DBM *d){

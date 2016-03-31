@@ -392,6 +392,37 @@ void PrintVisibleDropoutUnits(RBM *m){
     }else fprintf(stderr,"\nRBM not allocated @PrintVisibleDropoutUnits.\n");
 }
 
+/* It writes the weight matrix as PGM images without using CV*/
+void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, int height){
+    int i;
+    double min, max, aux;
+    FILE *arq;
+
+    arq=fopen(name,"wt");
+    fprintf(arq,"P2\n# Comments\n%d %d\n255\n",width,height);
+
+    min=1000000;
+    max=-1000000;
+
+    for(i = 0; i < (width*height); i++)
+    {
+       if(gsl_matrix_get(m->W, i, indexHiddenUnit)<min)
+          min=gsl_matrix_get(m->W, i, indexHiddenUnit);
+
+       if(gsl_matrix_get(m->W, i, indexHiddenUnit)>max)
+          max=gsl_matrix_get(m->W, i, indexHiddenUnit);
+    }
+
+    for(i = 0; i < (width*height); i++)
+    {
+       aux=gsl_matrix_get(m->W, i, indexHiddenUnit);
+       aux=((double)aux-(double)min)/((double)max-(double)min)*255.0;
+       fprintf(arq, "%d ",(int)aux);
+    }
+
+    fclose(arq);
+}
+
 /* It writes the weight matrix as PGM images */
 /*void SaveWeights(RBM *m, char *path, int height, int width){
     int i, j, z, w;
