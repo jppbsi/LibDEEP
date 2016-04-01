@@ -63,10 +63,10 @@ int main(int argc, char **argv){
             errorTRAIN = BernoulliRBMTrainingbyContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, 1, batch_size, p, q);
         break;
         case 2:
-            errorTRAIN = BernoulliRBMTrainingbyPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
+            errorTRAIN = BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size, p, q);
         break;
         case 3:
-            errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
+            errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size, p, q);
         break;
     }
     
