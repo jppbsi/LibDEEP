@@ -419,9 +419,11 @@ void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, in
 
     for(i = 0; i < (width*height); i++)
     {
-       aux=gsl_matrix_get(m->W, i, indexHiddenUnit);
-       aux=((double)aux-(double)min)/((double)max-(double)min)*255.0;
-       fprintf(arq, "%d ",(int)aux);
+		aux=gsl_matrix_get(m->W, i, indexHiddenUnit);
+		aux=((double)aux-(double)min)/((double)max-(double)min)*255.0;
+		if ((int)aux==-2147483648){
+			fprintf(arq, "%d ",0);
+		} fprintf(arq, "%d ",(int)aux);
     }
 
     fclose(arq);
