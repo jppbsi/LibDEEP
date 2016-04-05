@@ -399,31 +399,43 @@ void PrintVisibleDropoutUnits(RBM *m){
 /* It writes the weight matrix as PGM images without using CV*/
 void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, int height){
     int i;
-    double min, max, aux;
+    double min, max, aux, aux2;
     FILE *arq;
 
     arq=fopen(name,"wt");
     fprintf(arq,"P2\n# Comments\n%d %d\n255\n",width,height);
 
-    min=1000000;
-    max=-1000000;
+    min=10000000000;
+    max=-10000000000;
 
+	
     for(i = 0; i < (width*height); i++)
     {
+
+		
        if(gsl_matrix_get(m->W, i, indexHiddenUnit)<min)
           min=gsl_matrix_get(m->W, i, indexHiddenUnit);
 
        if(gsl_matrix_get(m->W, i, indexHiddenUnit)>max)
           max=gsl_matrix_get(m->W, i, indexHiddenUnit);
     }
+	fprintf(stderr,"\nmin = %lf",min);
+	fprintf(stderr,"\nmax = %lf",max);
+	if((int)min<1) min = 1.0;
 
     for(i = 0; i < (width*height); i++)
     {
 		aux=gsl_matrix_get(m->W, i, indexHiddenUnit);
+
 		aux=((double)aux-(double)min)/((double)max-(double)min)*255.0;
-		if ((int)aux==-2147483648){
-			fprintf(arq, "%d ",0);
-		} fprintf(arq, "%d ",(int)aux);
+
+		if((int)aux<0){
+			fprintf(arq, "%d ",(int)0);
+		}else if((int)aux>255){
+			fprintf(arq, "%d ",(int)254);
+		}
+		else
+			fprintf(arq, "%d ",(int)aux);
     }
 
     fclose(arq);
@@ -3628,7 +3640,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
         for(i = 0; i < m->n_visible_layer_neurons; i++)
             tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j);
-		tmp+=tmp/m->t;
+		tmp/=m->t;
 		tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
@@ -3670,7 +3682,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4DBM(RBM *m, gsl_vector *v){
         for(i = 0; i < m->n_visible_layer_neurons; i++)
             tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j)+gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j);
-		tmp+=tmp/m->t;
+		tmp/=m->t;
 		tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
@@ -3689,7 +3701,7 @@ void FASTgetProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v, gsl_vector *pr
 	    for(i = 0; i < m->n_visible_layer_neurons; i++)
 	        tmp+=(gsl_vector_get(v, i)*gsl_matrix_get(m->W, i, j));
 	    tmp+=gsl_vector_get(m->b, j);
-		tmp+=tmp/m->t;
+		tmp/=m->t;
 	    tmp = SigmoidLogistic(tmp);
 	    gsl_vector_set(prob_h, j, tmp);
 	}
