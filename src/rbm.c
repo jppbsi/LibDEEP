@@ -405,37 +405,23 @@ void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, in
     arq=fopen(name,"wt");
     fprintf(arq,"P2\n# Comments\n%d %d\n255\n",width,height);
 
-    min=10000000000;
-    max=-10000000000;
-
-	
+    min=1000000;
+    max=-1000000;
+   
     for(i = 0; i < (width*height); i++)
     {
-
-		
        if(gsl_matrix_get(m->W, i, indexHiddenUnit)<min)
           min=gsl_matrix_get(m->W, i, indexHiddenUnit);
 
        if(gsl_matrix_get(m->W, i, indexHiddenUnit)>max)
           max=gsl_matrix_get(m->W, i, indexHiddenUnit);
     }
-	fprintf(stderr,"\nmin = %lf",min);
-	fprintf(stderr,"\nmax = %lf",max);
-	if((int)min<1) min = 1.0;
 
     for(i = 0; i < (width*height); i++)
     {
-		aux=gsl_matrix_get(m->W, i, indexHiddenUnit);
-
-		aux=((double)aux-(double)min)/((double)max-(double)min)*255.0;
-
-		if((int)aux<0){
-			fprintf(arq, "%d ",(int)0);
-		}else if((int)aux>255){
-			fprintf(arq, "%d ",(int)254);
-		}
-		else
-			fprintf(arq, "%d ",(int)aux);
+       aux=gsl_matrix_get(m->W, i, indexHiddenUnit);
+       aux=((double)aux-(double)min)/((double)max-(double)min)*255.0;
+       fprintf(arq, "%d ",(int)aux);
     }
 
     fclose(arq);
