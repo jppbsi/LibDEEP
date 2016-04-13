@@ -6,13 +6,13 @@
 
 int main(int argc, char **argv){
 
-    if(argc != 7){
-        fprintf(stderr,"\nusage DBN <training set> <input parameters file> <model file> <number of DBN layers> <output file name> <number of images>\n");
+    if(argc != 8){
+        fprintf(stderr,"\nusage DBN <training set> <input parameters file> <model file> <number of DBN layers> <output file name> <number of images> <layer #>\n");
         exit(-1);
     }
     int i, j;
     gsl_vector *n_hidden_units = NULL, *eta = NULL, *lambda = NULL, *alpha = NULL, *eta_min = NULL, *eta_max = NULL;
-	int n_layers = atoi(argv[4]), n_images = atoi(argv[6]) ; 
+	int n_layers = atoi(argv[4]), n_images = atoi(argv[6]), layer_number = atoi(argv[7]) - 1; 
 	int side, indexHiddenUnit;
     double temp_eta, temp_lambda, temp_alpha, temp_eta_min, temp_eta_max, temp_hidden_units;
     double p, q;
@@ -72,13 +72,13 @@ int main(int argc, char **argv){
     }   
 
 	loadDBNParametersFromFile(d,argv[2]);
-	side = (int)floor(sqrt(d->m[0]->n_visible_layer_neurons));
+	side = (int)floor(sqrt(d->m[layer_number]->n_visible_layer_neurons));
 
 	srand(time(NULL));
 	for(i=0;i<n_images;i++){
 		sprintf(str, "%s%d.pgm", argv[5],i);
-		indexHiddenUnit = rand()%d->m[0]->n_hidden_layer_neurons;
-		SaveWeightsWithoutCV(d->m[0], str,indexHiddenUnit , side, side);
+		indexHiddenUnit = rand()%d->m[layer_number]->n_hidden_layer_neurons;
+		SaveWeightsWithoutCV(d->m[layer_number], str,indexHiddenUnit , side, side);
 	}
 
 

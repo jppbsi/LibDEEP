@@ -474,26 +474,44 @@ void loadDBNParametersFromFile(DBN *d, char *file){
     fpin = fopen(file,"rt");
 
     for(w = 0; w < d->n_layers; w++){ //load w
+        if(fscanf(fpin,"%s",aux)==1){
+		    for(i = 0; i < d->m[w]->n_visible_layer_neurons; i++){
+		        for(j = 0; j < d->m[w]->n_hidden_layer_neurons; j++){
+		            if(fscanf(fpin,"%f",&values)==1){
+		            	gsl_matrix_set(d->m[w]->W, i, j, values);
+					}else{
+						printf("failed to read float.\n");
+					}					
+		        }
+		    }
+		}else{
+			printf("failed to read string.\n");
+		}	
 
-        fscanf(fpin,"%s",aux);
-        for(i = 0; i < d->m[w]->n_visible_layer_neurons; i++){
-            for(j = 0; j < d->m[w]->n_hidden_layer_neurons; j++){
-                fscanf(fpin,"%f",&values);
-                gsl_matrix_set(d->m[w]->W, i, j, values);
-            }
-        }
+	    if(fscanf(fpin,"%s",aux)==1){ //load b
+			for(j = 0; j < d->m[w]->n_hidden_layer_neurons; j++){
+			    if(fscanf(fpin,"%f",&values)==1){
+			    	gsl_vector_set(d->m[w]->b, j, values);
+				}else{
+					printf("failed to read float.\n");
+				}	
+			}
+		}else{
+			printf("failed to read string.\n");
+		}	
 
-        fscanf(fpin,"%s",aux); //load b
-        for(j = 0; j < d->m[w]->n_hidden_layer_neurons; j++){
-            fscanf(fpin,"%f",&values);
-            gsl_vector_set(d->m[w]->b, j, values);
-        }
+	    if(fscanf(fpin,"%s",aux)==1){  //load a
+			for(i = 0; i < d->m[w]->n_visible_layer_neurons; i++){
+			    if(fscanf(fpin,"%f",&values)==1){
+			    	gsl_vector_set(d->m[w]->a, i, values);
+				}else{
+					printf("failed to read float.\n");
+				}	
+			}
+		}else{
+			printf("failed to read string.\n");
+		}
 
-        fscanf(fpin,"%s",aux); //load a
-        for(i = 0; i < d->m[w]->n_visible_layer_neurons; i++){
-            fscanf(fpin,"%f",&values);
-            gsl_vector_set(d->m[w]->a, i, values);
-        }
-    }
+	}
     fclose(fpin);
 }
