@@ -30,6 +30,34 @@ DBN *CreateDBN(int n_visible_units, gsl_vector *n_hidden_units, int n_labels, in
     }
 }
 
+/* It allocates an new DBN
+Parameters: [n_visible_units, *n_hidden_units, n_labels, n_layers]
+n_visible_units: number of visible units of the bottom RBM
+n_hidden_units: array with the number of hidden units of each RBM
+n_labels: number of labels
+n_layers: number of layers */
+DBN *CreateNewDBN(int n_visible_units, int *n_hidden_units, int n_labels, int n_layers){
+    DBN *d = NULL;
+    int i;
+    
+    if(n_hidden_units){
+    
+        d = (DBN *)malloc(sizeof(DBN));
+        d->n_layers = n_layers;
+        d->m = (RBM **)malloc(d->n_layers*sizeof(RBM *));
+        
+        //only the first layer has the number of visible inputs equals to the number of features
+        d->m[0] = CreateRBM(n_visible_units, (int)n_hidden_units[0], n_labels);
+        for(i = 1; i < d->n_layers; i++)
+            d->m[i] = CreateRBM((int)n_hidden_units[i-1], (int)n_hidden_units[i], n_labels);
+        
+        return d;
+    }else{
+        fprintf(stderr,"\nArray of hidden units not allocated or with a different number of hidden layers (n_layers) @CreateDBN\n");
+        return NULL;
+    }
+}
+
 /* It deallocates an DBN */
 void DestroyDBN(DBN **d){
     int i;
