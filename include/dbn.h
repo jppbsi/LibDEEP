@@ -24,14 +24,18 @@ void InitializeDBN(DBN *d); /* It initializes an DBN */
 /* Bernoulli DBN training */
 double BernoulliDBNTrainingbyContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a DBN for image reconstruction using Contrastive Divergence */
 double BernoulliDBNTrainingbyContrastiveDivergencewithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, gsl_vector *p, gsl_vector *q); /* It trains a DBN with Dropout for image reconstruction using Contrastive Divergence */
+double BernoulliDBNTrainingbyContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p, double *q); /* It trains a DBN with Dropout for image reconstruction using Contrastive Divergence */
 double BernoulliDBNTrainingbyPersistentContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a DBN for image reconstruction using Persistent Contrastive Divergence */
 double BernoulliDBNTrainingbyPersistentContrastiveDivergencewithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, gsl_vector *p, gsl_vector *q); /* It trains a DBN with Dropout for image reconstruction using Persistent Contrastive Divergence */
+double BernoulliDBNTrainingbyPersistentContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p, double *q); /* It trains a DBN with Dropout for image reconstruction using Persistent Contrastive Divergence */
 double BernoulliDBNTrainingbyFastPersistentContrastiveDivergence(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a DBN for image reconstruction using Fast Persistent Contrastive Divergence */
 double BernoulliDBNTrainingbyFastPersistentContrastiveDivergencewithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, gsl_vector *p, gsl_vector *q); /* It trains a DBN with Dropout for image reconstruction using Fast Persistent Contrastive Divergence */
+double BernoulliDBNTrainingbyFastPersistentContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p, double *q); /* It trains a DBN with Dropout for image reconstruction using Fast Persistent Contrastive Divergence */
 
 /* Bernoulli DBN reconstruction */
 double BernoulliDBNReconstruction(Dataset *D, DBN *d); /* It reconstructs an input dataset given a trained DBN */
 double BernoulliDBNReconstructionwithDropout(Dataset *D, DBN *d, gsl_vector *p, gsl_vector *q); /* It reconstructs an input dataset given a trained DBN with Dropout */
+double BernoulliDBNReconstructionWithDropout(Dataset *D, DBN *d, double *p, double *q); /* It reconstructs an input dataset given a trained DBN with Dropout */
 
 /* Backpropagation fine-tuning */
 gsl_vector *ForwardPass(gsl_vector *s, DBN *d); /* It executes the forward pass for a given sample s, and outputs the net's response for that sample */
