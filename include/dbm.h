@@ -12,6 +12,7 @@ typedef struct _DBM{
 
 /* Allocation and deallocation */
 DBM *CreateDBM(int n_visible_layer_neurons,  gsl_vector *n_hidden_units, int n_labels); /* It allocates a DBM */
+DBM *CreateNewDBM(int n_visible_layer_neurons,  int *n_hidden_units, int n_labels, int n_layers); /* It allocates a new DBM */
 void DestroyDBM(DBM **d); /* It deallocates a DBM */
 
 /* DBM initialization */
