@@ -100,6 +100,23 @@ RBM *CreateDRBM(int n_visible_units, int n_hidden_units, int n_labels, gsl_vecto
     return r;
 }
 
+/* It allocates a new DRBM
+Parameters: [n_visible_units, n_hidden_units, n_labels, sigma]
+n_visible_units: number of visible units
+n_hidden_layen_hidden_unitsrs: number of hidden units
+n_labels: number of labels
+sigma: array with the variance values associated to each visible unit */
+RBM *CreateNewDRBM(int n_visible_units, int n_hidden_units, int n_labels, double *sigma){
+    RBM *r = NULL;
+    
+    r = CreateRBM(n_visible_units, n_hidden_units, n_labels);
+    r->sigma = gsl_vector_calloc(n_visible_units);
+    for (int i = 0; i < r->sigma->size; i++)
+	gsl_vector_set(r->sigma, i, sigma[i]);
+    
+    return r;
+}
+
 /* It deallocates an RBM */
 void DestroyRBM(RBM **m){   
     if(*m){

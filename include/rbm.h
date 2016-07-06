@@ -30,6 +30,7 @@ typedef struct _RBM{
 /* Allocation and deallocation */
 RBM *CreateRBM(int n_visible_layers, int n_hidden_layers, int n_labels); // It allocates an RBM
 RBM *CreateDRBM(int n_visible_units, int n_hidden_units, int n_labels, gsl_vector *sigma); // It allocates a DRBM
+RBM *CreateNewDRBM(int n_visible_units, int n_hidden_units, int n_labels, double *sigma); // It allocates a new DRBM
 void DestroyRBM(RBM **m); // It deallocates an RBM
 void DestroyDRBM(RBM **m); // It deallocates a DRBM
 
