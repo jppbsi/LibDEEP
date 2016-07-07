@@ -1,6 +1,6 @@
 #include "auxiliary.h"
 
-/* Functions related to the Dataset struct ***/
+/* Functions related to the Dataset struct */
 
 /* It creates a dataset */
 Dataset *CreateDataset(int size, int nfeatures){
@@ -285,6 +285,22 @@ gsl_vector *node2gsl_vector(float *x, int n){
 	return v;
     }else{
 	fprintf(stderr,"\nThere is no node allocated @node2gsl_vector\n");
+	return NULL;
+    }
+}
+
+/* It converts a graph node to a double vector */
+double *node2double_vector(float *x, int n){
+    double *v = NULL;
+    int i;
+    
+    if(x){
+	v = (double *)calloc(n, sizeof(double));
+	for(i = 0; i < n; i++)
+	    v[i] = x[i];
+	return v;
+    }else{
+	fprintf(stderr,"\nThere is no node allocated @node2double_vector\n");
 	return NULL;
     }
 }
