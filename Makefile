@@ -9,7 +9,7 @@ CC=gcc
 FLAGS=  -O3 -Wall
 CFLAGS=''
 
-all: libDeep deep_epnn
+all: libDeep
 
 libDeep: $(LIB)/libDeep.a
 	echo "libDeep.a built..."
@@ -80,12 +80,6 @@ $(OBJ)/epnn.o: $(SRC)/epnn.c
 $(OBJ)/pca.o: $(SRC)/pca.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/pca.c \
 	-o $(OBJ)/pca.o
-
-deep_epnn:
-	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include examples/deep_epnn.c \
-	-L $(LIB) -lDeep -L $(OPF_DIR)/lib -lOPF  -L /usr/local/lib   -lgsl -lgslcblas -o $(BIN)/deep_epnn   -lm 
-
-
 
 clean:
 	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o rm -f $(BIN)/*

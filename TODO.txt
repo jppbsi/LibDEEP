@@ -1,5 +1,0 @@
-To optimize:
-- getProbabilityTurningOnHiddenUnit and getProbabilityTurningOnVisibleUnit shall not return pointers in order to not need to allocate and deallocate them every time.
-
-Unclear:
-- it is not clear whether the fast weights consider W only, or the biases a and b as well.
