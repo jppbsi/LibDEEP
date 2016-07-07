@@ -1,4 +1,4 @@
-/* It implements Regression Algorithms */
+/* It implements Linear Regression Algorithms */
 
 #ifndef REGRESSION_H
 #define REGRESSION_H

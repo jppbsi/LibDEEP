@@ -102,9 +102,9 @@ double GradientDescentLinear(Subgraph *g, double alpha, double *w){
             fprintf(stderr,"\nIteration: %d -> cost function value: %lf", i, error);
             i++;
         }
-        fprintf(stderr,"\nMSE over the training set %.7lf", error);
+        fprintf(stderr,"\nError over the training set %.7lf", error);
     }else
-        fprintf(stderr,"\n.There is no data allocated @GradientDescent\n");
+        fprintf(stderr,"\n.There is no data allocated @GradientDescentLinear\n");
     
     free(w_tmp);
     
