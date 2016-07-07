@@ -89,7 +89,8 @@ double GradientDescentLinear(Subgraph *g, double alpha, double *w){
 		
     if(g){
         w_tmp = (double *)calloc(n+1, sizeof(double));
-        memcpy(w_tmp, w, (n+1)*sizeof(double));
+        for (j = 0; j < n+1; j++)
+	    w_tmp[j] = w[j];
         i = 1;
         while((fabs(error-old_error) > 0.000001) && (i <= max_iteration)){
             old_error = error;
@@ -97,7 +98,8 @@ double GradientDescentLinear(Subgraph *g, double alpha, double *w){
                 tmp = w_tmp[j] - (alpha/m)*Linear_RegressionPartialDerivative(g, w_tmp, j); /* tmp = w_j - alpha*1/m*sum(h(x_i)-y_i)x_i^j */
 		w[j] = tmp;
             }
-            memcpy(w_tmp, w, (n+1)*sizeof(double));
+            for (j = 0; j < n+1; j++)
+		w_tmp[j] = w[j];
             error = Linear_Regression(g, w);
             fprintf(stderr,"\nIteration: %d -> cost function value: %lf", i, error);
             i++;
