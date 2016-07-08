@@ -2998,7 +2998,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
 }
 
 // It trains a Discriminative Bernoulli RBM by Constrative Divergence for pattern classification
-double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int batch_size){
+double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_gibbs_sampling, int batch_size){
     int e, z, j, i, n, n_batches = ceil((float)D->size/batch_size), t, ctr;
     gsl_vector *y0 = NULL, *y1 = NULL, *py1 = NULL, *ph0 = NULL, *ph1 = NULL, *pv1 = NULL, *acc_v0 = NULL, *acc_v1 = NULL;
     gsl_vector *acc_h0 = NULL, *acc_h1 = NULL, *acc_y0 = NULL, *acc_y1 = NULL, *delta_a = NULL, *delta_b = NULL, *delta_c = NULL;
