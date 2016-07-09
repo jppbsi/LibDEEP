@@ -11,7 +11,6 @@ int main(int argc, char **argv){
     int iteration = atoi(argv[4]), i, n_epochs = atoi(argv[6]), batch_size = atoi(argv[7]), n_gibbs_sampling = atoi(argv[8]), op = atoi(argv[9]);
     int n_hidden_units;
     double eta, lambda, alpha, eta_min, eta_max;
-    double p, q;
     double errorTRAIN, errorTEST;
     char *fileName = argv[5];
     FILE *fp = NULL;
@@ -34,8 +33,6 @@ int main(int argc, char **argv){
     WaiveLibDEEPComment(fp);
     fscanf(fp, "%lf %lf", &eta_min, &eta_max);
     WaiveLibDEEPComment(fp);
-    fscanf(fp, "%lf %lf", &p, &q);
-    WaiveLibDEEPComment(fp);
     fclose(fp);
     
     fprintf(stderr,"\nCreating and initializing RBM ... ");
@@ -53,19 +50,19 @@ int main(int argc, char **argv){
     fprintf(stderr,"\nTraining RBM ...\n");
     switch (op){
         case 1:
-            errorTRAIN = BernoulliRBMTrainingbyContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, 1, batch_size, p, q);
+            errorTRAIN = BernoulliRBMTrainingbyContrastiveDivergence(DatasetTrain, m, n_epochs, 1, batch_size);
         break;
         case 2:
-            errorTRAIN = BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size, p, q);
+            errorTRAIN = BernoulliRBMTrainingbyPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
         break;
         case 3:
-            errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size, p, q);
+            errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
         break;
     }
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nRunning RBM for reconstruction ... ");
-    errorTEST = BernoulliRBMReconstructionwithDropout(DatasetTest, m, p, q);
+    errorTEST = BernoulliRBMReconstruction(DatasetTest, m);
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);

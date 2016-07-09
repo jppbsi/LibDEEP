@@ -1,6 +1,9 @@
 100 0.1 0.0002 0.5 #<number of hidden units> <learning rate> <weight decay> <momentum>
 0 0.1 #<minimum learning rate> <maximum learning rate>
+1 1 #<hidden units dropout rate> <visible units dropout rate> | 1 for standard DBN
 100 0.1 0.0002 0.5 #<number of hidden units> <learning rate> <weight decay> <momentum>
 0 0.1 #<minimum learning rate> <maximum learning rate>
+1 1 #<hidden units dropout rate> <visible units dropout rate> | 1 for standard DBN
 500 0.1 0.0002 0.5 #<number of hidden units> <learning rate> <weight decay> <momentum>
 0 0.1 #<minimum learning rate> <maximum learning rate>
+1 1 #<hidden units dropout rate> <visible units dropout rate> | 1 for standard DBN

@@ -13,7 +13,6 @@ int main(int argc, char **argv){
     gsl_vector *n_hidden_units = NULL, *eta = NULL, *lambda = NULL, *alpha = NULL, *eta_min = NULL, *eta_max = NULL;
     int n_layers = atoi(argv[10]); 
     double temp_eta, temp_lambda, temp_alpha, temp_eta_min, temp_eta_max, temp_p, temp_q, temp_hidden_units;
-    double *p, *q;
     double errorTRAIN, errorTEST;
     char *fileName = argv[5];
     FILE *fp = NULL;
@@ -33,8 +32,6 @@ int main(int argc, char **argv){
     alpha = gsl_vector_alloc(n_layers);
     eta_min = gsl_vector_alloc(n_layers);
     eta_max = gsl_vector_alloc(n_layers);
-    p = (double *)calloc(n_layers, sizeof(double));
-    q = (double *)calloc(n_layers, sizeof(double));
 
     fp = fopen(fileName, "r");
     if(!fp){
@@ -48,16 +45,12 @@ int main(int argc, char **argv){
 	WaiveLibDEEPComment(fp);
 	fscanf(fp, "%lf %lf", &temp_eta_min, &temp_eta_max);
 	WaiveLibDEEPComment(fp);
-	fscanf(fp, "%lf %lf", &temp_p, &temp_q);
-	WaiveLibDEEPComment(fp);
         gsl_vector_set(n_hidden_units, i, temp_hidden_units);
 	gsl_vector_set(eta, i, temp_eta);
 	gsl_vector_set(lambda, i, temp_lambda);
 	gsl_vector_set(alpha, i, temp_alpha);	
         gsl_vector_set(eta_min, i, temp_eta_min);
 	gsl_vector_set(eta_max, i, temp_eta_max);
-	p[i] = temp_p;
-	q[i] = temp_q;
     }
     fclose(fp);
 
@@ -76,19 +69,19 @@ int main(int argc, char **argv){
     fprintf(stderr,"\nTraining DBN ...\n");
     switch (op){
         case 1:
-            errorTRAIN = BernoulliDBNTrainingbyContrastiveDivergenceWithDropout(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size, p, q);
+            errorTRAIN = BernoulliDBNTrainingbyContrastiveDivergence(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size);
         break;
         case 2:
-            errorTRAIN = BernoulliDBNTrainingbyPersistentContrastiveDivergenceWithDropout(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size, p, q);
+            errorTRAIN = BernoulliDBNTrainingbyPersistentContrastiveDivergence(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size);
         break;
         case 3:
-            errorTRAIN = BernoulliDBNTrainingbyFastPersistentContrastiveDivergenceWithDropout(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size, p, q);
+            errorTRAIN = BernoulliDBNTrainingbyFastPersistentContrastiveDivergence(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size);
         break;
     }
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nRunning DBN for reconstruction ... ");
-    errorTEST = BernoulliDBNReconstructionWithDropout(DatasetTest, d, p, q);
+    errorTEST = BernoulliDBNReconstruction(DatasetTest, d);
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
@@ -110,8 +103,6 @@ int main(int argc, char **argv){
     gsl_vector_free(alpha);
     gsl_vector_free(eta_min);
     gsl_vector_free(eta_max);
-    free(p);
-    free(q);
     
     return 0;
 }

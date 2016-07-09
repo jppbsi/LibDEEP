@@ -3,7 +3,7 @@
 int main(int argc, char **argv){
 
     if(argc != 13){
-        fprintf(stderr,"\nusage DBN <training set> <test set> <output results file name> <cross-validation iteration number> \
+        fprintf(stderr,"\nusage TDBN <training set> <test set> <output results file name> <cross-validation iteration number> \
                 <input parameters file> <n_epochs> <batch_size> <number of iterations for Constrastive Divergence> \
                 <1 - CD | 2 - PCD | 3 - FPCD> <number of DBN layers> <temperature> <output parameters file name>\n");
         exit(-1);
