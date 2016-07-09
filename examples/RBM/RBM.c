@@ -33,11 +33,11 @@ int main(int argc, char **argv){
                 exit(1);
         }
     fscanf(fp, "%d %lf %lf %lf", &n_hidden_units, &eta, &lambda, &alpha);
-    WaiveComment(fp);
+    WaiveLibDEEPComment(fp);
     fscanf(fp, "%lf %lf", &eta_min, &eta_max);
-    WaiveComment(fp);
+    WaiveLibDEEPComment(fp);
     fscanf(fp, "%lf %lf", &p, &q);
-    WaiveComment(fp);
+    WaiveLibDEEPComment(fp);
     fclose(fp);
     
     fprintf(stderr,"\nCreating and initializing RBM ... ");
