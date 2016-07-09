@@ -67,7 +67,7 @@ int main(int argc, char **argv){
     }   
     fprintf(stderr,"\nOk\n");
     
-    fprintf(stderr,"\nTraining RBM ...\n");  
+    fprintf(stderr,"\nTraining DBM ...\n");  
     errorTRAIN = GreedyPreTrainingDBM(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size, op);
     fprintf(stderr,"\nOK\n");
     
@@ -75,12 +75,14 @@ int main(int argc, char **argv){
     errorTEST = BernoulliDBMReconstruction(DatasetTest, d);
     fprintf(stderr,"\nOK\n");
     
+    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+    
+    fprintf(stderr, "\nSaving outputs ... ");
     fp = fopen(argv[3], "a");
     fprintf(fp,"\n%d %lf %lf", iteration, errorTRAIN, errorTEST);
     fclose(fp);
+    fprintf(stderr, "Ok!\n");
     
-    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
-
     saveDBMParameters(d,argv[11]);
     
     DestroyDataset(&DatasetTrain);

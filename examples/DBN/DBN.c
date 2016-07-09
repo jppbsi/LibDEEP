@@ -38,8 +38,8 @@ int main(int argc, char **argv){
 
     fp = fopen(fileName, "r");
     if(!fp){
-            fprintf(stderr,"\nUnable to open file %s.\n", fileName);
-            exit(1);
+        fprintf(stderr,"\nUnable to open file %s.\n", fileName);
+        exit(1);
     }
 
     j = 0;
@@ -90,12 +90,14 @@ int main(int argc, char **argv){
     fprintf(stderr,"\nRunning DBN for reconstruction ... ");
     errorTEST = BernoulliDBNReconstructionWithDropout(DatasetTest, d, p, q);
     fprintf(stderr,"\nOK\n");
-        
+    
+    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+   
+    fprintf(stderr, "\nSaving outputs ... ");
     fp = fopen(argv[3], "a");
     fprintf(fp,"\n%d %lf %lf", iteration, errorTRAIN, errorTEST);
     fclose(fp);
-    
-    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+    fprintf(stderr, "Ok!\n");
     
     DestroyDataset(&DatasetTrain);
     DestroyDataset(&DatasetTest);

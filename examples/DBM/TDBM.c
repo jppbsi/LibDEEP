@@ -36,8 +36,8 @@ int main(int argc, char **argv){
 
     fp = fopen(fileName, "r");
     if(!fp){
-            fprintf(stderr,"\nUnable to open file %s.\n", fileName);
-            exit(1);
+        fprintf(stderr,"\nUnable to open file %s.\n", fileName);
+        exit(1);
     }
 
     j = 0;
@@ -55,7 +55,7 @@ int main(int argc, char **argv){
     }
     fclose(fp);
 
-    fprintf(stderr,"\nCreating and initializing DBM ... ");
+    fprintf(stderr,"\nCreating and initializing TDBM ... ");
     d = CreateDBM(Train->nfeats, n_hidden_units, Train->nlabels);    
     InitializeDBM(d);
     for(i = 0; i < d->n_layers; i++){
@@ -68,20 +68,22 @@ int main(int argc, char **argv){
     }   
     fprintf(stderr,"\nOk\n");
     
-    fprintf(stderr,"\nTraining RBM ...\n");  
+    fprintf(stderr,"\nTraining TDBM ...\n");  
     errorTRAIN = GreedyPreTrainingDBM(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size, op);
     fprintf(stderr,"\nOK\n");
     
-    fprintf(stderr,"\nRunning DBM for reconstruction ... ");
+    fprintf(stderr,"\nRunning TDBM for reconstruction ... ");
     errorTEST = BernoulliDBMReconstruction(DatasetTest, d);
     fprintf(stderr,"\nOK\n");
     
+    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+    
+    fprintf(stderr, "\nSaving outputs ... ");
     fp = fopen(argv[3], "a");
     fprintf(fp,"\n%d %lf %lf", iteration, errorTRAIN, errorTEST);
     fclose(fp);
+    fprintf(stderr, "Ok!\n");
     
-    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
-
     saveDBMParameters(d,argv[12]);
     
     DestroyDataset(&DatasetTrain);

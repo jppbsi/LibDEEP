@@ -55,7 +55,7 @@ int main(int argc, char **argv){
     }
     fclose(fp);
 
-    fprintf(stderr,"\nCreating and initializing DBN ... ");
+    fprintf(stderr,"\nCreating and initializing TDBN ... ");
     d = CreateDBN(Train->nfeats, n_hidden_units, Train->nlabels, n_layers);    
     InitializeDBN(d);
     for(i = 0; i < d->n_layers; i++){
@@ -68,7 +68,7 @@ int main(int argc, char **argv){
     }   
     fprintf(stderr,"\nOk\n");
     
-    fprintf(stderr,"\nTraining RBN ...\n");  
+    fprintf(stderr,"\nTraining TDBN ...\n");  
     switch (op){
         case 1:
             errorTRAIN = BernoulliDBNTrainingbyContrastiveDivergence(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size);
@@ -82,15 +82,17 @@ int main(int argc, char **argv){
     }
     fprintf(stderr,"\nOK\n");
     
-    fprintf(stderr,"\nRunning DBN for reconstruction ... ");
+    fprintf(stderr,"\nRunning TDBN for reconstruction ... ");
     errorTEST = BernoulliDBNReconstruction(DatasetTest, d);
     fprintf(stderr,"\nOK\n");
-        
+    
+    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+    
+    fprintf(stderr, "\nSaving outputs ... ");
     fp = fopen(argv[3], "a");
     fprintf(fp,"\n%d %lf %lf", iteration, errorTRAIN, errorTEST);
     fclose(fp);
-    
-    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+    fprintf(stderr, "Ok!\n");
 
     saveDBNParameters(d,argv[12]);
     
