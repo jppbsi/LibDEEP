@@ -37,7 +37,6 @@ extern "C" {
 #include "dbm.h"
 #include "epnn.h"
 #include "pca.h"
-	
 
 #ifdef __cplusplus
 }

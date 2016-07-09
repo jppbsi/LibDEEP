@@ -3,17 +3,17 @@
 
 int main(int argc, char **argv){
 
-    if(argc != 13){
+    if(argc != 12){
         fprintf(stderr,"\nusage DBM <training set> <test set> <output results file name> <cross-validation iteration number> \
                 <input parameters file> <n_epochs> <batch_size> <number of iterations for Constrastive Divergence> \
-                <1 - CD | 2 - PCD | 3 - FPCD> <number of DBM layers> <temperature> <output parameters file name>\n");
+                <1 - CD | 2 - PCD | 3 - FPCD> <number of DBM layers> <output parameters file name>\n");
         exit(-1);
     }
     
     int iteration = atoi(argv[4]), i, j, n_epochs = atoi(argv[6]), batch_size = atoi(argv[7]), n_gibbs_sampling = atoi(argv[8]), op = atoi(argv[9]);
     gsl_vector *n_hidden_units = NULL, *eta = NULL, *lambda = NULL, *alpha = NULL, *eta_min = NULL, *eta_max = NULL;
     int n_layers = atoi(argv[10]); 
-    double temp_eta, temp_lambda, temp_alpha, temp_eta_min, temp_eta_max, t = atof(argv[11]), temp_hidden_units;
+    double temp_eta, temp_lambda, temp_alpha, temp_eta_min, temp_eta_max, temp_hidden_units;
     double errorTRAIN, errorTEST;
     char *fileName = argv[5];
     FILE *fp = NULL;
@@ -65,7 +65,6 @@ int main(int argc, char **argv){
         d->m[i]->alpha = gsl_vector_get(alpha,i); 
         d->m[i]->eta_min = gsl_vector_get(eta_min,i); 
         d->m[i]->eta_max = gsl_vector_get(eta_max,i); 
-	d->m[i]->t = t;
     }   
     fprintf(stderr,"\nOk\n");
     
@@ -83,7 +82,7 @@ int main(int argc, char **argv){
     
     fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
 
-    saveDBMParameters(d,argv[12]);
+    saveDBMParameters(d,argv[11]);
     
     DestroyDataset(&DatasetTrain);
     DestroyDataset(&DatasetTest);

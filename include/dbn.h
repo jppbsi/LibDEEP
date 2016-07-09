@@ -37,16 +37,14 @@ double BernoulliDBNReconstruction(Dataset *D, DBN *d); /* It reconstructs an inp
 double BernoulliDBNReconstructionwithDropout(Dataset *D, DBN *d, gsl_vector *p, gsl_vector *q); /* It reconstructs an input dataset given a trained DBN with Dropout */
 double BernoulliDBNReconstructionWithDropout(Dataset *D, DBN *d, double *p, double *q); /* It reconstructs an input dataset given a trained DBN with Dropout */
 
-/* Backpropagation fine-tuning */
+/* Backpropagation fine-tuning (IN PROGRESS) */
 gsl_vector *ForwardPass(gsl_vector *s, DBN *d); /* It executes the forward pass for a given sample s, and outputs the net's response for that sample */
-
-/* Image reconstruction */
-//IplImage *DBNReconstructImage(DBN *d, IplImage *img); // It reconstructs an input image given a trained DBN
 
 /* Data conversion */
 Subgraph *DBN2Subgraph(DBN *d, Dataset *D); /* It generates a subgraph using the learned features from the top layer of the DBN over the dataset */
 
+/* Auxiliary functions */
 void saveDBNParameters(DBN *d, char *file); /* It saves DBN weight matrixes and bias vectors */
-void loadDBNParametersFromFile(DBN *d, char *file); /* It loads DBN weight matrixes and bias vectors from file*/
+void loadDBNParametersFromFile(DBN *d, char *file); /* It loads DBN weight matrixes and bias vectors from file */
 
 #endif

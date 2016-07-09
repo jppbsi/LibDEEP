@@ -1,6 +1,11 @@
 #include "math_functions.h"
 #include <gsl/gsl_statistics_double.h>
 
+/* Mathematical functions */
+
+/* It computes the Sigmoid Logistic function
+Parameters: [x]
+x: double value */
 double SigmoidLogistic(double x){
     double y;
     
@@ -9,6 +14,9 @@ double SigmoidLogistic(double x){
     return y;
 }
 
+/* It computes the Soft Plus function
+Parameters: [x]
+x: double value */
 double SoftPlus(double x){
     double y;
 
@@ -17,7 +25,8 @@ double SoftPlus(double x){
     return y;
 }
 
-/*It computes the covariance matrix
+/* It computes the covariance matrix
+Parameters: [M]
 M: input matrix each row is an observation and each column is a variable */
 gsl_matrix *CovarianceMatrix(gsl_matrix *M){
     if(!M){
@@ -36,7 +45,7 @@ gsl_matrix *CovarianceMatrix(gsl_matrix *M){
             a = gsl_matrix_column (M, i);
             b = gsl_matrix_column (M, j);
             v = gsl_stats_covariance (a.vector.data, a.vector.stride, b.vector.data, b.vector.stride, a.vector.size);
-            gsl_matrix_set(cov, i, j, v); gsl_matrix_set(cov, j, i, v); /* covariance matrices are symmetric */
+            gsl_matrix_set(cov, i, j, v); gsl_matrix_set(cov, j, i, v); /* Covariance matrices are symmetric */
         }
     }
     

@@ -3,9 +3,9 @@
 /* Linear Regression */
 
 /* It executes the linear regression
-Parameters: [g, w]
+Parameters: [g, *w]
 g: input data
-w: learned parameters of the model */
+*w: array of learned parameters of the model */
 double Linear_Regression(Subgraph *g, double *w){
     double MSE, h_w, y;
     double *x = NULL;
@@ -30,9 +30,9 @@ double Linear_Regression(Subgraph *g, double *w){
 }
 
 /* It executes the partial derivative of variable j concerning linear regression with MSE as the cost function
-Parameters: [g, w, j]
+Parameters: [g, *w, j]
 g: training graph
-w: learned parameters of the model
+*w: array of learned parameters of the model
 j: ID of the feature */
 double Linear_RegressionPartialDerivative(Subgraph *g, double *w, int j){
     double partial_derivative_value, h_w, y, x_j;
@@ -59,9 +59,9 @@ double Linear_RegressionPartialDerivative(Subgraph *g, double *w, int j){
 }
 
 /* It executes the hypothesis function
-Parameters: [x, w]
-x: input sample
-w: parameters of the model */
+Parameters: [*x, *w]
+*x: array of input sample
+*w: array of parameters of the model */
 double h_linear_regression(double *x, double *w, int n){
     double tmp = 0.0;
     int i;
@@ -81,7 +81,7 @@ double h_linear_regression(double *x, double *w, int n){
 Parameters: [g, alpha, w]
 g: training graph
 alpha: learning rate
-w: parameters of the model */
+*w: array of model's parameters */
 double GradientDescentLinear(Subgraph *g, double alpha, double *w){
     double *w_tmp = NULL;
     double error = 0.0, old_error = DBL_MAX, tmp;
@@ -112,13 +112,13 @@ double GradientDescentLinear(Subgraph *g, double alpha, double *w){
 }
 
 /* It fits a linear regression model using Equation 5 as the error function optimized by Gradient Descent
-Parameters: [X, Y, m, n, alpha, w]
-X: input data
-Y: target values
+Parameters: [**X, *Y, m, n, alpha, *w]
+**X: input data matrix
+*Y: target values vector
 m: matrix first dimension
 n: matrix second dimension
 alpha: learning rate
-w: parameters of the linear function */
+*w: parameters array of the linear function */
 double LinearRegression_Fitting(double **X, double *Y, int m, int n, double alpha, double *w){
     int i, j;
     double error;
