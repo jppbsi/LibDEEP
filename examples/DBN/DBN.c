@@ -1,6 +1,4 @@
-#include "OPF.h"
 #include "deep.h"
-#include "opt.h"
 
 int main(int argc, char **argv){
 

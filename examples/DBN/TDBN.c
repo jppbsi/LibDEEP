@@ -1,6 +1,4 @@
-#include "OPF.h"
 #include "deep.h"
-#include "opt.h"
 
 int main(int argc, char **argv){
 
@@ -12,13 +10,13 @@ int main(int argc, char **argv){
     }
     int iteration = atoi(argv[4]), i, j, n_epochs = atoi(argv[6]), batch_size = atoi(argv[7]), n_gibbs_sampling = atoi(argv[8]), op = atoi(argv[9]);
     gsl_vector *n_hidden_units = NULL, *eta = NULL, *lambda = NULL, *alpha = NULL, *eta_min = NULL, *eta_max = NULL;
-	int n_layers = atoi(argv[10]); 
+    int n_layers = atoi(argv[10]); 
     double temp_eta, temp_lambda, temp_alpha, temp_eta_min, temp_eta_max, t = atof(argv[11]) , temp_hidden_units;
     double p, q;
     double errorTRAIN, errorTEST;
     char *fileName = argv[5];
     FILE *fp = NULL;
-	FILE *fpPar = NULL;
+    FILE *fpPar = NULL;
     Dataset *DatasetTrain = NULL, *DatasetTest = NULL;
     DBN *d = NULL;
     
@@ -29,13 +27,12 @@ int main(int argc, char **argv){
     DatasetTrain = Subgraph2Dataset(Train);
     DatasetTest = Subgraph2Dataset(Test);
     
-
     n_hidden_units = gsl_vector_alloc(n_layers);
-	eta = gsl_vector_alloc(n_layers);	
-	lambda = gsl_vector_alloc(n_layers);
-	alpha = gsl_vector_alloc(n_layers);
-	eta_min = gsl_vector_alloc(n_layers);
-	eta_max = gsl_vector_alloc(n_layers);
+    eta = gsl_vector_alloc(n_layers);	
+    lambda = gsl_vector_alloc(n_layers);
+    alpha = gsl_vector_alloc(n_layers);
+    eta_min = gsl_vector_alloc(n_layers);
+    eta_max = gsl_vector_alloc(n_layers);
 
     fp = fopen(fileName, "r");
     if(!fp){
@@ -44,25 +41,21 @@ int main(int argc, char **argv){
     }
 
     j = 0;
-
     for(i = 0; i < n_layers; i++){
-		fscanf(fp, "%lf %lf %lf %lf", &temp_hidden_units, &temp_eta, &temp_lambda, &temp_alpha);
-		WaiveComment(fp);
-        gsl_vector_set(n_hidden_units, i, temp_hidden_units);
-		gsl_vector_set(eta, i, temp_eta);
-		gsl_vector_set(lambda, i, temp_lambda);
-		gsl_vector_set(alpha, i, temp_alpha);
-		fscanf(fp, "%lf %lf", &temp_eta_min, &temp_eta_max);
-        gsl_vector_set(eta_min, i, temp_eta_min);
-		gsl_vector_set(eta_max, i, temp_eta_max);
-		WaiveComment(fp);
-
-	}
+	fscanf(fp, "%lf %lf %lf %lf", &temp_hidden_units, &temp_eta, &temp_lambda, &temp_alpha);
+	WaiveLibDEEPComment(fp);
+	gsl_vector_set(n_hidden_units, i, temp_hidden_units);
+	gsl_vector_set(eta, i, temp_eta);
+	gsl_vector_set(lambda, i, temp_lambda);
+	gsl_vector_set(alpha, i, temp_alpha);
+	fscanf(fp, "%lf %lf", &temp_eta_min, &temp_eta_max);
+	gsl_vector_set(eta_min, i, temp_eta_min);
+	gsl_vector_set(eta_max, i, temp_eta_max);
+	WaiveLibDEEPComment(fp);
+    }
     fclose(fp);
 
-    
     fprintf(stderr,"\nCreating and initializing DBN ... ");
-
     d = CreateDBN(Train->nfeats, n_hidden_units, Train->nlabels, n_layers);    
     InitializeDBN(d);
     for(i = 0; i < d->n_layers; i++){
@@ -71,9 +64,8 @@ int main(int argc, char **argv){
         d->m[i]->alpha = gsl_vector_get(alpha,i); 
         d->m[i]->eta_min = gsl_vector_get(eta_min,i); 
         d->m[i]->eta_max = gsl_vector_get(eta_max,i); 
-		d->m[i]->t = t;
+	d->m[i]->t = t;
     }   
-    
     fprintf(stderr,"\nOk\n");
     
     fprintf(stderr,"\nTraining RBN ...\n");  
@@ -88,8 +80,6 @@ int main(int argc, char **argv){
             errorTRAIN = BernoulliDBNTrainingbyFastPersistentContrastiveDivergence(DatasetTrain, d, n_epochs, n_gibbs_sampling, batch_size);
         break;
     }
-
-    
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nRunning DBN for reconstruction ... ");
@@ -102,7 +92,7 @@ int main(int argc, char **argv){
     
     fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
 
-	saveDBNParameters(d,argv[12]);
+    saveDBNParameters(d,argv[12]);
     
     DestroyDataset(&DatasetTrain);
     DestroyDataset(&DatasetTest);

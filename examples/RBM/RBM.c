@@ -1,6 +1,4 @@
-#include "OPF.h"
 #include "deep.h"
-#include "opt.h"
 
 int main(int argc, char **argv){
 
@@ -28,10 +26,10 @@ int main(int argc, char **argv){
     DatasetTest = Subgraph2Dataset(Test);
     
     fp = fopen(fileName, "r");
-        if(!fp){
-                fprintf(stderr,"\nUnable to open file %s.\n", fileName);
-                exit(1);
-        }
+    if(!fp){
+        fprintf(stderr,"\nUnable to open file %s.\n", fileName);
+        exit(1);
+    }
     fscanf(fp, "%d %lf %lf %lf", &n_hidden_units, &eta, &lambda, &alpha);
     WaiveLibDEEPComment(fp);
     fscanf(fp, "%lf %lf", &eta_min, &eta_max);
@@ -41,23 +39,18 @@ int main(int argc, char **argv){
     fclose(fp);
     
     fprintf(stderr,"\nCreating and initializing RBM ... ");
-
     m = CreateRBM(Train->nfeats, n_hidden_units, 1);
-    
     m->eta = eta;
     m->lambda = lambda;
     m->alpha = alpha;
     m->eta_min = eta_min;
     m->eta_max = eta_max;
-    
     InitializeWeights(m);    
     InitializeBias4HiddenUnits(m);
     InitializeBias4VisibleUnitsWithRandomValues(m);
-    
     fprintf(stderr,"\nOk\n");
     
     fprintf(stderr,"\nTraining RBM ...\n");
-    
     switch (op){
         case 1:
             errorTRAIN = BernoulliRBMTrainingbyContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, 1, batch_size, p, q);
@@ -69,7 +62,6 @@ int main(int argc, char **argv){
             errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size, p, q);
         break;
     }
-    
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nRunning RBM for reconstruction ... ");
