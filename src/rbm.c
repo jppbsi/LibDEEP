@@ -2721,7 +2721,7 @@ batch_size: size of batch data
 p: hidden neurons dropout rate
 q: visible neurons dropout rate */
 double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_gibbs_sampling, int batch_size, double p, double q){
-    int e, z, j, i, n, n_batches = ceil((float)D->size/batch_size), t, ctr;
+    int count, e, z, j, i, n, n_batches = ceil((float)D->size/batch_size), t, ctr;
     gsl_vector *y0 = NULL, *y1 = NULL, *py1 = NULL, *ph0 = NULL, *ph1 = NULL, *pv1 = NULL, *acc_v0 = NULL, *acc_v1 = NULL;
     gsl_vector *acc_h0 = NULL, *acc_h1 = NULL, *acc_y0 = NULL, *acc_y1 = NULL, *delta_a = NULL, *delta_b = NULL, *delta_c = NULL;
     gsl_matrix *_posW = NULL, *_negW = NULL, *posW = NULL, *negW = NULL, *_posU = NULL, *_negU = NULL, *posU = NULL, *negU = NULL;
@@ -2729,6 +2729,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
     double sample, error, errorsum, train_error;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
+    FILE *f;
     
     srand(time(NULL));
     T = gsl_rng_default;
@@ -2764,6 +2765,10 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
     delta_c = gsl_vector_calloc(m->n_labels);
     
     train_error = 0;
+    count = 0;
+    
+    f = fopen("extracted_features.txt", "wt");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
     
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
@@ -2855,6 +2860,14 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
                     gsl_matrix_add(negU, _negU);
             
                     error+=getReconstructionError(y0, py1);
+		    
+		    if (e == n_epochs){
+			fprintf(f, "%d %d", count, D->sample[z].label);
+			for (i = 0; i < m->n_hidden_layer_neurons; i++)
+			    fprintf(f, " %lf", gsl_vector_get(ph1, i));
+			fprintf(f, "\n");
+			count++;
+		    }
             
                     gsl_vector_free(y0);
                     gsl_vector_free(y1);
@@ -2920,6 +2933,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
         train_error = errorsum/n_batches;
     }
     
+    fclose(f);    
     gsl_rng_free(r);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(tmpU);
@@ -4432,7 +4446,7 @@ batch_size: size of the mini-batch
 p: hidden neurons dropout rate
 q: visible neurons dropout rate */
 double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p, double q){
-    int e, z, j, i, n, n_batches = ceil((float)D->size/batch_size), t, ctr;
+    int count, e, z, j, i, n, n_batches = ceil((float)D->size/batch_size), t, ctr;
     gsl_vector *y0 = NULL, *y1 = NULL, *py1 = NULL, *ph0 = NULL, *ph1 = NULL, *pv1 = NULL, *acc_v0 = NULL, *acc_v1 = NULL;
     gsl_vector *acc_h0 = NULL, *acc_h1 = NULL, *acc_y0 = NULL, *acc_y1 = NULL, *delta_a = NULL, *delta_b = NULL, *delta_c = NULL;
     gsl_matrix *_posW = NULL, *_negW = NULL, *posW = NULL, *negW = NULL, *_posU = NULL, *_negU = NULL, *posU = NULL, *negU = NULL;
@@ -4440,6 +4454,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
     double sample, error, errorsum, train_error;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
+    FILE *f;
     
     srand(time(NULL));
     T = gsl_rng_default;
@@ -4475,6 +4490,10 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
     delta_c = gsl_vector_calloc(m->n_labels);
 
     train_error = 0;
+    count = 0;
+    
+    f = fopen("extracted_features.txt", "wt");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
     
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
@@ -4566,6 +4585,14 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
                     gsl_matrix_add(negU, _negU);
             
                     error+=getReconstructionError(y0, py1);
+		    
+		    if (e == n_epochs){
+			fprintf(f, "%d %d", count, D->sample[z].label);
+			for (i = 0; i < m->n_hidden_layer_neurons; i++)
+			    fprintf(f, " %lf", gsl_vector_get(ph1, i));
+			fprintf(f, "\n");
+			count++;
+		    }
             
                     gsl_vector_free(y0);
                     gsl_vector_free(y1);
@@ -4633,6 +4660,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
         fprintf(stderr,"MSE classification error: %lf OK", train_error);        
     }
     
+    fclose(f);
     gsl_rng_free(r);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(tmpU);
