@@ -2,14 +2,15 @@
 
 int main(int argc, char **argv){
 
-    if(argc != 9){
+    if(argc != 10){
         fprintf(stderr,"\nusage DropoutGaussianDRBM <training set> <test set> <output results file name> <cross-validation iteration number> \
-                <input parameters file> <n_epochs> <batch_size> <number of iterations for Constrastive Divergence>\n");
+                <input parameters file> <n_epochs> <batch_size> <number of iterations for Constrastive Divergence> <variance value>\n");
         exit(-1);
     }
     int iteration = atoi(argv[4]), i, n_epochs = atoi(argv[6]), batch_size = atoi(argv[7]), n_gibbs_sampling = atoi(argv[8]);
     int n_hidden_units;
-    double eta, lambda, alpha, eta_min, eta_max;
+    double variance = atof(argv[9]);
+    double eta, lambda, alpha, eta_min, eta_max, *sigma;
     double p, q;
     double errorTRAIN, errorTEST;
     char *fileName = argv[5];
@@ -37,8 +38,13 @@ int main(int argc, char **argv){
     WaiveLibDEEPComment(fp);
     fclose(fp);
     
+    sigma = (double *)calloc(Train->nfeats, sizeof(double));
+    
+    for (i = 0; i < Train->nfeats; i++)
+        sigma[i] = variance;
+    
     fprintf(stderr,"\nCreating and initializing Dropout Gaussian DRBM ... ");
-    m = CreateRBM(Train->nfeats, n_hidden_units, 1);
+    m = CreateNewDRBM(Train->nfeats, n_hidden_units, 1, sigma);
     m->eta = eta;
     m->lambda = lambda;
     m->alpha = alpha;
@@ -65,11 +71,12 @@ int main(int argc, char **argv){
     fclose(fp);
     fprintf(stderr, "Ok!\n");
     
+    free(sigma);
     DestroyDataset(&DatasetTrain);
     DestroyDataset(&DatasetTest);
     DestroySubgraph(&Train);
     DestroySubgraph(&Test);
-    DestroyRBM(&m);
+    DestroyDRBM(&m);
     
     return 0;
 }
