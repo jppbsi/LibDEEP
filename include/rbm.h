@@ -78,12 +78,16 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
 double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a Bernoulli RBM by Constrative Divergence for image reconstruction regarding DBMs at the intermediate layers */
 
 /* Gaussian-Bernoulli RBM training */
+double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a Gaussian-Bernoulli RBM by Constrative Divergence for image reconstruction (binary images) */
+double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p, double q); /* It trains a Gaussian-Bernoulli RBM with Dropout by Constrative Divergence for image reconstruction (binary images) */
 double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size); /* It trains a Discriminative Gaussian-Bernoulli RBM by Constrative Divergence for pattern classification */
 double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p, double q); /* It trains a Discriminative Gaussian-Bernoulli RBM with Dropout by Constrative Divergence for pattern classification */
 
 /* Bernoulli RBM reconstruction/classification */
 double BernoulliRBMReconstruction(Dataset *D, RBM *m); /* It reconstructs an input dataset given a trained RBM */
 double BernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p, double q); /* It reconstructs an input dataset given a trained RBM with Dropout */
+double GaussianBernoulliRBMReconstruction(Dataset *D, RBM *m); /* It reconstructs an input dataset given a trained Gaussian RBM */
+double GaussianBernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p, double q); /* It reconstructs an input dataset given a trained Gaussian RBM with Dropout */
 double DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m); /* It classifies an input dataset given a trained RBM and it outputs the classification error */
 
 /* Auxiliary functions */
@@ -103,6 +107,10 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4DBM(RBM *m, gsl_vector *h); /* It
 gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_matrix *fast_W); /* It computes the probability of turning on a visible unit j for FPCD */
 gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *s, gsl_vector *h, gsl_matrix *fast_W); /* It computes the probability of dropping out hidden units and turning on a visible unit j for FPCD */
 gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD4Dropconnect(RBM *m, gsl_matrix *M, gsl_vector *h, gsl_matrix *fast_W); /* It computes the probability of turning on a visible unit j for FPCD using a dropconnect mask */
+gsl_vector *getProbabilityTurningOnHiddenUnit4GaussianVisibleUnit(RBM *m, gsl_vector *v); /* It computes the probability of turning on a hidden unit j considering Gaussian RBMs */
+gsl_vector *getProbabilityTurningOnHiddenUnit4GaussianVisibleUnit4Dropout(RBM *m, gsl_vector *r, gsl_vector *v); /* It computes the probability of turning on a hidden unit j considering Gaussian RBMs with Dropout */
+gsl_vector *getProbabilityTurningOnVisibleUnit4GaussianVisibleUnit(RBM *m, gsl_vector *h); /* It computes the probability of turning on a visible unit i considering Gaussian RBMs */
+gsl_vector *getProbabilityTurningOnVisibleUnit4GaussianVisibleUnit4Dropout(RBM *m, gsl_vector *s, gsl_vector *h); /* It computes the probability of turning on a visible unit i considering Gaussian RBMs with Dropout */
 gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *y); /* It computes the probability of turning on a hidden unit j considering Discriminative RBMs and Bernoulli visible units */
 gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4Dropout(RBM *m, gsl_vector *r, gsl_vector *y); /* It computes the probability of turning on a hidden unit j with Dropout considering Discriminative RBMs with Bernoulli visible units, i..e, p(h|y,x) */
 gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit(RBM *m, gsl_vector *y); /* It computes the probability of turning on a hidden unit j considering Discriminative RBMs and Gaussian visible units */
