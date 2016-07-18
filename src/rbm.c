@@ -4203,7 +4203,7 @@ m: RBM
 n_epochs: number of training epochs
 n_CD_iterations: number of CD iterations
 batch_size: size of batch data */
-double Gaussian_BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size){
+double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size){
     int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
     double error, sample, errorsum, pl, plsum, v_std_rate;
     const gsl_rng_type * T;
@@ -4567,7 +4567,7 @@ n_CD_iterations: number of CD iterations
 batch_size: size of batch data
 p: hidden neurons dropout rate
 q: visible neurons dropout rate */
-double Gaussian_BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p, double q){
+double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p, double q){
     int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
     double error, sample, errorsum, pl, plsum, v_std_rate;
     const gsl_rng_type * T;
