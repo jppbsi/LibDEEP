@@ -5485,9 +5485,7 @@ double GaussianBernoulliRBMReconstruction(Dataset *D, RBM *m){
     int i, j;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
     FILE *f;
-    
-    count = 0;
-    
+        
     f = fopen("test_features.txt", "wt");
     fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
@@ -5522,9 +5520,7 @@ double GaussianBernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double 
     FILE *f;
     
     gsl_matrix_scale(m->W, p*q);
-    
-    count = 0;
-    
+        
     f = fopen("test_features.txt", "wt");
     fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
