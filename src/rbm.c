@@ -4204,7 +4204,7 @@ n_epochs: number of training epochs
 n_CD_iterations: number of CD iterations
 batch_size: size of batch data */
 double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size){
-    int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
+    int count, i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
     double error, sample, errorsum, pl, plsum, v_std_rate;
     const gsl_rng_type * T;
     gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL, *tmpWxP = NULL, *matrix_data_W_probh1 = NULL, *matrix_probvn_W_probhn = NULL, *matrix_tmp_probh1;
@@ -4212,6 +4212,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1 = NULL, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL, *tmp_sum2 = NULL, *tmp_sum4 = NULL;
     gsl_rng *r;
+    FILE *f;
 
     /* Gaussian */
     gsl_vector *p1 = NULL, *pf = NULL, *pf2 = NULL, *p2 = NULL, *invfstdInc = NULL, *std_rate = NULL, *invfstd = NULL;
@@ -4296,6 +4297,11 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
             gsl_vector_set(std_rate, i, 0.0);
         }
     }
+    
+    count = 0;
+    
+    f = fopen("train_features.txt", "wt");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
@@ -4431,6 +4437,14 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
 
                     error+=getReconstructionError(D->sample[z].feature, probvn);
                     pl+=getPseudoLikelihood(m, m->v);
+		    
+		    if (e == n_epochs){
+			fprintf(f, "%d %d", count, D->sample[z].label);
+			for (i = 0; i < m->n_hidden_layer_neurons; i++)
+			    fprintf(f, " %lf", gsl_vector_get(probhn, i));
+			fprintf(f, "\n");
+			count++;
+		    }
 
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
@@ -4441,7 +4455,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
                 }
             }
 
-            errorsum = errorsum + error;
+            errorsum = errorsum + error/ctr;
             plsum = plsum + pl/ctr;
 
             if(e > 5){
@@ -4511,7 +4525,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
             gsl_vector_add(m->b, tmpb);
         }
 
-        error = errorsum;
+        error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"  -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
         fprintf(stdout,"%d %lf %lf\n", e, error, pl);
@@ -4521,6 +4535,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
     }
 
 
+    fclose(f);
     gsl_rng_free(r);
     
     gsl_vector_free(tmpVectorz);
@@ -4568,7 +4583,7 @@ batch_size: size of batch data
 p: hidden neurons dropout rate
 q: visible neurons dropout rate */
 double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p, double q){
-    int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
+    int count, i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
     double error, sample, errorsum, pl, plsum, v_std_rate;
     const gsl_rng_type * T;
     gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL, *tmpWxP = NULL, *matrix_data_W_probh1 = NULL, *matrix_probvn_W_probhn = NULL, *matrix_tmp_probh1;
@@ -4576,6 +4591,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1 = NULL, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL, *tmp_sum2 = NULL, *tmp_sum4 = NULL;
     gsl_rng *r;
+    FILE *f;
 
     /* Gaussian */
     gsl_vector *p1 = NULL, *pf = NULL, *pf2 = NULL, *p2 = NULL, *invfstdInc = NULL, *std_rate = NULL, *invfstd = NULL;
@@ -4660,6 +4676,11 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
             gsl_vector_set(std_rate, i, 0.0);
         }
     }
+    
+    count = 0;
+    
+    f = fopen("train_features.txt", "wt");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
@@ -4801,6 +4822,14 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
 
                     error+=getReconstructionError(D->sample[z].feature, probvn);
                     pl+=getPseudoLikelihood(m, m->v);
+		    
+		    if (e == n_epochs){
+			fprintf(f, "%d %d", count, D->sample[z].label);
+			for (i = 0; i < m->n_hidden_layer_neurons; i++)
+			    fprintf(f, " %lf", gsl_vector_get(probhn, i));
+			fprintf(f, "\n");
+			count++;
+		    }
 
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
@@ -4811,7 +4840,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
                 }
             }
 
-            errorsum = errorsum + error;
+            errorsum = errorsum + error/ctr;
             plsum = plsum + pl/ctr;
 
             if(e > 5){
@@ -4881,7 +4910,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
             gsl_vector_add(m->b, tmpb);
         }
 
-        error = errorsum;
+        error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"  -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
         fprintf(stdout,"%d %lf %lf\n", e, error, pl);
@@ -4891,6 +4920,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
     }
 
 
+    fclose(f);
     gsl_rng_free(r);
     
     gsl_vector_free(tmpVectorz);
@@ -5452,13 +5482,25 @@ m: RBM */
 /* It reconstructs an input dataset given a trained RBM */
 double GaussianBernoulliRBMReconstruction(Dataset *D, RBM *m){
     double error = 0.0;
-    int i;
+    int i, j;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
+    FILE *f;
+    
+    count = 0;
+    
+    f = fopen("test_features.txt", "wt");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
     for(i = 0; i <  D->size; i++){
         h_prime = getProbabilityTurningOnHiddenUnit4Gaussian(m, D->sample[i].feature, m->sigma);
         v_prime = getProbabilityTurningOnVisibleUnit4Gaussian(m, h_prime, m->sigma);
         error+=getReconstructionError(D->sample[i].feature, v_prime);
+	
+	fprintf(f, "%d %d", i, D->sample[i].label);
+	for (j = 0; j < m->n_hidden_layer_neurons; j++)
+	    fprintf(f, " %lf", gsl_vector_get(h_prime, j));
+	fprintf(f, "\n");
+	
         gsl_vector_free(h_prime);
         gsl_vector_free(v_prime);
     }
@@ -5475,15 +5517,27 @@ p: hidden neurons dropout rate
 q: visible neurons dropout rate */
 double GaussianBernoulliRBMReconstructionwithDropout(Dataset *D, RBM *m, double p, double q){
     double error = 0.0;
-    int i;
+    int i, j;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
+    FILE *f;
     
     gsl_matrix_scale(m->W, p*q);
+    
+    count = 0;
+    
+    f = fopen("test_features.txt", "wt");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
     for(i = 0; i <  D->size; i++){
         h_prime = getProbabilityTurningOnHiddenUnit4Gaussian(m, D->sample[i].feature, m->sigma);
         v_prime = getProbabilityTurningOnVisibleUnit4Gaussian(m, h_prime, m->sigma);
         error+=getReconstructionError(D->sample[i].feature, v_prime);
+	
+	fprintf(f, "%d %d", i, D->sample[i].label);
+	for (j = 0; j < m->n_hidden_layer_neurons; j++)
+	    fprintf(f, " %lf", gsl_vector_get(h_prime, j));
+	fprintf(f, "\n");
+	
         gsl_vector_free(h_prime);
         gsl_vector_free(v_prime);
     }
