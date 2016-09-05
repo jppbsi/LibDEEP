@@ -158,6 +158,87 @@ double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, i
     return error;
 }
 
+/* It performs DBM with Dropout greedy pre-training step
+Parameters: [D, d, n_epochs, n_samplings, batch_size, LearningType, *p]
+D: dataset
+d: DBM
+n_epochs: number of epochs
+n_samplings: number of samplings
+batch_size: mini-batch size
+LearningType: type of learning algorithm [1 - CD | 2 - PCD | 3 - FPCD]
+*p: array of hidden neurons dropout rate */
+double GreedyPreTrainingDBMwithDropout(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType, double *p){
+    double error = 0.0,aux = 0.0;
+    int i, j, k, l;
+    Dataset *tmp1 = NULL, *tmp2 = NULL;   
+ 
+    error = 0;
+    tmp1 = CopyDataset(D);
+    
+    for (i = 0; i < d->n_layers;i++){
+	switch (LearningType){
+	    case 1:
+		if(i == 0){
+		    fprintf(stderr,"\n Training bottom layer ... ");
+		    error = Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(tmp1, d->m[0], n_epochs, n_samplings, batch_size, p[i]);
+		}else if(i == d->n_layers - 1){
+		    fprintf(stderr,"\n Training top layer ... ");
+		    error += Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size, p[i]); 
+		}else{
+		fprintf(stderr,"\n Training layer %i ... ",i+1);
+		    error += Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(tmp1, d->m[i], n_epochs, n_samplings, batch_size, p[i]);
+		}
+	    break;
+	    /*case 2:
+		if(i == 0){
+		    fprintf(stderr,"\n Training bottom layer ... ");
+		    error = Bernoulli_TrainingRBMbyPCD4DBM_BottomLayerwithDropout(tmp1, d->m[0], n_epochs, n_samplings, batch_size, p[i]);
+		}else if(i == d->n_layers - 1){
+		    fprintf(stderr,"\n Training top layer ... ");
+		    error += Bernoulli_TrainingRBMbyPCD4DBM_TopLayerwithDropout(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size, p[i]); 
+		}else{
+		fprintf(stderr,"\n Training layer %i ... ",i+1);
+		    error += Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayerswithDropout(tmp1, d->m[i], n_epochs, n_samplings, batch_size, p[i]);
+		}
+	    break;*/
+	   /* case 3:
+		if(i == 0){
+		    fprintf(stderr,"\n Training bottom layer ... ");		
+		    error = Bernoulli_TrainingRBMbyFPCD4DBM_BottomLayer(tmp1, d->m[0], n_epochs, n_samplings, batch_size);
+		}else if(i == d->n_layers - 1){
+		    fprintf(stderr,"\n Training top layer ... ");
+		    error += Bernoulli_TrainingRBMbyFPCD4DBM_TopLayer(tmp1, d->m[d->n_layers-1], n_epochs, n_samplings, batch_size); 
+		}else{
+		fprintf(stderr,"\n Training layer %i ... ",i+1);
+		    error += Bernoulli_TrainingRBMbyFPCD4DBM_IntermediateLayers(tmp1, d->m[i], n_epochs, n_samplings, batch_size);
+		}
+	    break;*/
+	}
+        fprintf(stderr,"OK");
+	
+	/* Making the hidden layer of RBM i to be the visible layer of RBM i+1 */
+	if(i < d->n_layers-1){
+	    tmp2 = CopyDataset(tmp1);
+	    DestroyDataset(&tmp1);
+	    tmp1 = CreateDataset(D->size, d->m[i]->n_hidden_layer_neurons);
+	    tmp1->nlabels = D->nlabels;
+	    for(j = 0; j < tmp1->size; j++){
+		for(k = 0; k < tmp1->nfeatures; k++){
+		    aux = 0.0;
+		    for(l = 0; l < tmp2->nfeatures; l++)
+			aux+=(gsl_vector_get(tmp2->sample[j].feature, l)*gsl_matrix_get(d->m[i]->W, l, k)+gsl_vector_get(tmp2->sample[j].feature, l)*gsl_matrix_get(d->m[i]->W, l, k));    
+		    aux+=gsl_vector_get(d->m[i]->b, k);
+		    gsl_vector_set(tmp1->sample[j].feature, k, SigmoidLogistic(aux));
+		    }
+	    }
+	    DestroyDataset(&tmp2);
+	}
+    }
+    DestroyDataset(&tmp1);
+    
+    return error;
+}
+
 /* Bernoulli DBM reconstruction */
 
 /* It reconstructs an input dataset given a trained DBM

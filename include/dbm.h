@@ -20,6 +20,7 @@ void InitializeDBM(DBM *d); /* It initializes a DBM */
 
 /* Bernoulli DBM pre-training */
 double GreedyPreTrainingDBM(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType); /* It performs DBM greedy pre-training step */
+double GreedyPreTrainingDBMwithDropout(Dataset *D, DBM *d, int n_epochs, int n_samplings, int batch_size, int LearningType, double *p); /* It performs DBM with Dropout greedy pre-training step */
 
 /* Bernoulli DBM reconstruction */
 double BernoulliDBMReconstruction(Dataset *D, DBM *d);/* It reconstructs an input dataset given a trained DBM */

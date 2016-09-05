@@ -132,15 +132,14 @@ double BernoulliDBNTrainingbyContrastiveDivergence(Dataset *D, DBN *d, int n_epo
 }
 
 /* It trains an DBN with Dropout for image reconstruction using Contrastive Divergence
-Parameters: [D, d, n_epochs, n_CD_iterations, batch_size, *p, *q]
+Parameters: [D, d, n_epochs, n_CD_iterations, batch_size, *p]
 D: dataset
 d: DBN
 n_epochs: number of training epochs
 n_CD_iterations: number of CD iterations
 batch size: size of batch data
-*p: array of hidden neurons dropout rate
-*q: array of visible neurons dropout rate */
-double BernoulliDBNTrainingbyContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p, double *q){
+*p: array of hidden neurons dropout rate */
+double BernoulliDBNTrainingbyContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p){
     double error = 0.0, aux = 0.0;
     Dataset *tmp1 = NULL, *tmp2 = NULL;
     int i, j, z, id;
@@ -149,7 +148,7 @@ double BernoulliDBNTrainingbyContrastiveDivergenceWithDropout(Dataset *D, DBN *d
     
     for(id = 0; id < d->n_layers; id++){
 	fprintf(stderr,"\nTraining layer %i ... ", id+1);
-	error = BernoulliRBMTrainingbyContrastiveDivergencewithDropout(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size, p[id], q[id]);
+	error = BernoulliRBMTrainingbyContrastiveDivergencewithDropout(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size, p[id]);
 	
 	/* It updates the last layer to be the input to the next RBM */
 	tmp2 = CopyDataset(tmp1);
@@ -168,7 +167,7 @@ double BernoulliDBNTrainingbyContrastiveDivergenceWithDropout(Dataset *D, DBN *d
 	fprintf(stderr,"\nOK");
     }
     DestroyDataset(&tmp1);
-    error = BernoulliDBNReconstructionWithDropout(D, d, p, q);
+    error = BernoulliDBNReconstruction(D, d);
     
     return error;
 }
@@ -255,15 +254,14 @@ double BernoulliDBNTrainingbyPersistentContrastiveDivergence(Dataset *D, DBN *d,
 }
 
 /* It trains a DBN with Dropout for image reconstruction using Persistent Contrastive Divergence
-Parameters: [D, d, n_epochs, n_CD_iterations, batch_size, *p, *q]
+Parameters: [D, d, n_epochs, n_CD_iterations, batch_size, *p]
 D: dataset
 d: DBN
 n_epochs: number of training epochs
 n_CD_iterations: number of CD iterations
 batch size: size of batch data
-*p: array of hidden neurons dropout rate
-*q: array of visible neurons dropout rate */
-double BernoulliDBNTrainingbyPersistentContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p, double *q){
+*p: array of hidden neurons dropout rate */
+double BernoulliDBNTrainingbyPersistentContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p){
     double error, aux;
     Dataset *tmp1 = NULL, *tmp2 = NULL;
     int i, j, z, id;
@@ -272,7 +270,7 @@ double BernoulliDBNTrainingbyPersistentContrastiveDivergenceWithDropout(Dataset 
     
     for(id = 0; id < d->n_layers; id++){
         fprintf(stderr,"\nTraining layer %d ... ", id+1);
-        error = BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size, p[id], q[id]);
+        error = BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size, p[id]);
         
         /* It updates the last layer to be the input to the next RBM */
         tmp2 = CopyDataset(tmp1);
@@ -291,7 +289,7 @@ double BernoulliDBNTrainingbyPersistentContrastiveDivergenceWithDropout(Dataset 
         fprintf(stderr,"\nOK");
     }
     DestroyDataset(&tmp1);
-    error = BernoulliDBNReconstructionWithDropout(D, d, p, q);
+    error = BernoulliDBNReconstruction(D, d);
     
     return error;
 }
@@ -378,15 +376,14 @@ double BernoulliDBNTrainingbyFastPersistentContrastiveDivergence(Dataset *D, DBN
 }
 
 /* It trains a DBN with Dropout for image reconstruction using Fast Persistent Contrastive Divergence
-Parameters: [D, d, n_epochs, n_CD_iterations, batch_size, *p, *q]
+Parameters: [D, d, n_epochs, n_CD_iterations, batch_size, *p]
 D: dataset
 d: DBN
 n_epochs: number of training epochs
 n_CD_iterations: number of CD iterations
 batch size: size of batch data
-*p: array of hidden neurons dropout rate
-*q: array of visible neurons dropout rate */
-double BernoulliDBNTrainingbyFastPersistentContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p, double *q){
+*p: array of hidden neurons dropout rate */
+double BernoulliDBNTrainingbyFastPersistentContrastiveDivergenceWithDropout(Dataset *D, DBN *d, int n_epochs, int n_CD_iterations, int batch_size, double *p){
     double error, aux;
     Dataset *tmp1 = NULL, *tmp2 = NULL;
     int i, j, z, id;
@@ -395,7 +392,7 @@ double BernoulliDBNTrainingbyFastPersistentContrastiveDivergenceWithDropout(Data
     
     for(id = 0; id < d->n_layers; id++){
         fprintf(stderr,"\nTraining layer %d ... ", id+1);
-        error = BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size, p[id], q[id]);
+        error = BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(tmp1, d->m[id], n_epochs, n_CD_iterations, batch_size, p[id]);
         
         /* It updates the last layer to be the input to the next RBM */
         tmp2 = CopyDataset(tmp1);
@@ -414,7 +411,7 @@ double BernoulliDBNTrainingbyFastPersistentContrastiveDivergenceWithDropout(Data
         fprintf(stderr,"\nOK");
     }
     DestroyDataset(&tmp1);
-    error = BernoulliDBNReconstructionWithDropout(D, d, p, q);
+    error = BernoulliDBNReconstruction(D, d);
     
     return error;
 }
@@ -472,55 +469,6 @@ double BernoulliDBNReconstruction(Dataset *D, DBN *d){
     double error = 0.0;
     int l, i;
 
-    for(i = 0; i < D->size; i++){
-        /* Going up */
-        aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);
-        gsl_vector_memcpy(aux, D->sample[i].feature);
-        for(l = 0; l < d->n_layers; l++){
-	    h_prime = getProbabilityTurningOnHiddenUnit(d->m[l], aux);
-            gsl_vector_free(aux);
-            if(l < d->n_layers-1){
-                aux = gsl_vector_calloc(d->m[l+1]->n_visible_layer_neurons);
-                gsl_vector_memcpy(aux, h_prime);
-                gsl_vector_free(h_prime);
-            }
-        }
-	
-	/* Going down */
-        aux = gsl_vector_calloc(d->m[l-1]->n_hidden_layer_neurons);
-        gsl_vector_memcpy(aux, h_prime);
-        for(l = d->n_layers-1; l >= 0; l--){
-            v_prime = getProbabilityTurningOnVisibleUnit(d->m[l], aux);
-            gsl_vector_free(aux);
-            if(l > 0){
-                aux = gsl_vector_calloc(d->m[l-1]->n_hidden_layer_neurons);
-                gsl_vector_memcpy(aux, v_prime);
-                gsl_vector_free(v_prime);
-            }
-        }
-        error+=getReconstructionError(D->sample[i].feature, v_prime);
-        gsl_vector_free(v_prime);
-        gsl_vector_free(h_prime);
-    }
-    error/=D->size;
-
-    return error;
-}
-
-/* It reconstructs an input dataset given a trained DBN
-Parameters: [D, d, *p, *q]
-D: dataset
-d: DBN
-*p: array of hidden neurons dropout rate
-*q: array of visible neurons dropout rate */
-double BernoulliDBNReconstructionWithDropout(Dataset *D, DBN *d, double *p, double *q){
-    gsl_vector *h_prime = NULL, *v_prime = NULL, *aux = NULL;
-    double error = 0.0;
-    int l, i;
-    
-    for (l = 0; l < d->n_layers; l++)
-	gsl_matrix_scale(d->m[l]->W, p[l]*q[l]);
-	
     for(i = 0; i < D->size; i++){
         /* Going up */
         aux = gsl_vector_calloc(d->m[0]->n_visible_layer_neurons);

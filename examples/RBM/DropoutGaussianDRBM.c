@@ -11,7 +11,7 @@ int main(int argc, char **argv){
     int n_hidden_units;
     double variance = atof(argv[9]);
     double eta, lambda, alpha, eta_min, eta_max, *sigma;
-    double p, q;
+    double p;
     double errorTRAIN, errorTEST;
     char *fileName = argv[5];
     FILE *fp = NULL;
@@ -34,7 +34,7 @@ int main(int argc, char **argv){
     WaiveLibDEEPComment(fp);
     fscanf(fp, "%lf %lf", &eta_min, &eta_max);
     WaiveLibDEEPComment(fp);
-    fscanf(fp, "%lf %lf", &p, &q);
+    fscanf(fp, "%lf", &p);
     WaiveLibDEEPComment(fp);
     fclose(fp);
     
@@ -56,7 +56,7 @@ int main(int argc, char **argv){
     fprintf(stderr,"\nOk\n");
     
     fprintf(stderr,"\nTraining Dropout Gaussian DRBM ...\n");
-    errorTRAIN = DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size, p, q);
+    errorTRAIN = DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
     fprintf(stderr,"\nOK\n");
     
     fprintf(stderr,"\nRunning Dropout Gaussian DRBM for classification ... ");
