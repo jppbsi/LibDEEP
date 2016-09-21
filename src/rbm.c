@@ -2502,13 +2502,14 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
 
             
             for(t = 0; t < batch_size; t++){
+	
                 if(z < D->size){
                     ctr++;
                     setVisibleLayer(m, D->sample[z].feature);
                     gsl_vector_add(acc_v0, m->v);
                     y0 = label2binary_gsl_vector(D->sample[z].label, D->nlabels);
                     gsl_vector_add(acc_y0, y0);
-            
+		                
                     /* It computes the P(h0|v0,y0) */
                     ph0 = getDiscriminativeProbabilityTurningOnHiddenUnit(m, y0);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2526,6 +2527,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
                         else gsl_vector_set(m->v, j, 0.0);
                     }
                     gsl_vector_add(acc_v1, m->v);
+		    
             
                     /* It computes the P(y1|h0) */
                     py1 = getDiscriminativeProbabilityLabelUnit(m);
@@ -2622,6 +2624,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_vector_scale(delta_c, m->alpha); /* delta_c = alpha*delta_c */
             gsl_vector_add(delta_c, acc_y0); /* delta_c = eta*(y0 - y1) + alpha*delta_c */
             gsl_vector_add(m->c, delta_c); /* c = c + delta_c */
+	    
         }
         
         fprintf(stderr,"MSE classification error: %lf OK", errorsum/n_batches);

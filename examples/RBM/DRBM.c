@@ -35,7 +35,7 @@ int main(int argc, char **argv){
     fclose(fp);
     
     fprintf(stderr,"\nCreating and initializing DRBM ... ");
-    m = CreateRBM(Train->nfeats, n_hidden_units, 1);
+    m = CreateRBM(Train->nfeats, n_hidden_units, Train->nlabels);
     m->eta = eta;
     m->lambda = lambda;
     m->alpha = alpha;

@@ -41,7 +41,7 @@ int main(int argc, char **argv){
         sigma[i] = variance;
     
     fprintf(stderr,"\nCreating and initializing Gaussian DRBM ... ");
-    m = CreateNewDRBM(Train->nfeats, n_hidden_units, 1, sigma);
+    m = CreateNewDRBM(Train->nfeats, n_hidden_units, Train->nlabels, sigma);
     m->eta = eta;
     m->lambda = lambda;
     m->alpha = alpha;
