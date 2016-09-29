@@ -27,7 +27,7 @@ int main(int argc, char **argv){
 	for(i = 0; i < Train->nlabels; i++)
 	    cov[i] = gsl_matrix_calloc(Train->nfeats, Train->nfeats);
 	    
-        fflush(stderr); fprintf(stderr,"\nTraining by OPF ... \n");
+        fprintf(stderr,"\nTraining by OPF ... \n");
         gettimeofday(&tic,NULL); w = TrainANNbyOPF(Train, mu, cov, kvalue); gettimeofday(&toc,NULL);
         fprintf(stderr,"OK\n");
 	
@@ -38,12 +38,12 @@ int main(int argc, char **argv){
 	for(i = 0; i < kvalue; i++)
 	    cov[i] = gsl_matrix_calloc(Train->nfeats, Train->nfeats);
 	    
-        fflush(stderr); fprintf(stderr,"\nTraining by K-Means ... ");
+        fprintf(stderr,"\nTraining by K-Means ... ");
         gettimeofday(&tic,NULL); w = TrainANNbyKMeans(Train, mu, cov, kvalue); gettimeofday(&toc,NULL);
-        fprintf(stderr,"OK");
+        fprintf(stderr,"OK\n");
     }
 
-    fflush(stderr); fprintf(stderr,"\nTesting ... ");
+    fprintf(stderr,"\nTesting ... ");
     ClassifyANN(Test, mu, cov, w);
     fprintf(stderr,"OK\n");
     

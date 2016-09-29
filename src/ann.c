@@ -2,6 +2,79 @@
 
 /* Artificial Neural Networks */
 
+/* It computes the cluster centroids by k-means clustering */
+void k_Means(Subgraph *g, gsl_matrix *mu, int k){
+	gsl_vector **c = NULL, **c_aux = NULL, *x = NULL;
+	int i, j, z = 0, totelems = k, nearestk, *counter = NULL;
+	double dist, mindist, old_error, error = DBL_MAX;
+	
+	counter = (int *)calloc(k,sizeof(int));
+	x = gsl_vector_calloc(g->nfeats);
+	c = malloc(k*sizeof(gsl_vector **));
+	for(i = 0; i < k; i++)
+		c[i] = gsl_vector_calloc(mu->size2);
+	c_aux = malloc(k*sizeof(gsl_vector **));
+	for(i = 0; i < k; i++)
+		c_aux[i] = gsl_vector_calloc(mu->size2);
+    
+	/* Initializing centers randomly */
+	while(totelems > 0){
+		i = RandomInteger(0,g->nnodes-1);
+		if (g->node[i].status!=NIL){
+			for(j = 0; j < c[0]->size; j++)
+				gsl_vector_set(c[z], j, g->node[i].feat[j]);
+			g->node[i].status = NIL;
+			totelems--;
+			z++;
+		}
+	}
+    
+	do{
+		old_error = error;
+		error = 0.0;
+		for(i = 0; i < k; i++)
+			for(j = 0; j < c[0]->size; j++)
+				gsl_vector_set(c_aux[i], j, 0.0);
+				
+		/* It associates each node to its nearest center */
+		for(i = 0; i < g->nnodes; i ++){ /* For each node */
+			x = node2gsl_vector(g->node[i].feat, g->nfeats);
+			mindist = DBL_MAX;
+			for(j = 0; j < k; j++){ /* For each center */
+				dist = Euclidean_Distance(x, c[j]);
+				if(dist < mindist){
+					mindist = dist;
+					nearestk = j;
+				}
+			}
+			gsl_vector_free(x);
+			counter[nearestk]++; /* It counts the number of samples that have been associated with center nearestk */
+			for(j = 0; j < c_aux[0]->size; j++)
+				gsl_vector_set(c_aux[nearestk], j, gsl_vector_get(c_aux[nearestk], j)+g->node[i].feat[j]);
+			error += mindist;
+		}
+        
+		/* It updates centers */
+		for(i = 0; i < k; i++){
+			for(j = 0; j < c_aux[0]->size; j++)
+				gsl_vector_set(c[i], j, gsl_vector_get(c_aux[i], j)/counter[i]); /* Mean position */
+			counter[i] = 0;
+		}
+	} while(fabs(error-old_error) > 1e-10);
+    
+	for (i = 0; i < k; i++)
+		for (j = 0; j < g->nfeats; j++)
+			gsl_matrix_set(mu, i, j, gsl_vector_get(c[i], j));
+    
+	free(counter);
+	for(i = 0; i < k; i++){
+		gsl_vector_free(c[i]);
+		gsl_vector_free(c_aux[i]);
+	}
+	free(c);
+	free(c_aux);
+}
+
 /* It computes matrix Phi
 Parameters: [g, mu, cov]
 g: subgraph (training or testing)
@@ -83,7 +156,7 @@ gsl_matrix *TrainANNbyKMeans(Subgraph *g, gsl_matrix *mu, gsl_matrix **cov, int 
 	int i;
 	
 	/* Unsupervised phase */
-	//kMeans(g, mu, kvalue); /* It initializes the centers */
+	k_Means(g, mu, kvalue); /* It initializes the centers */
 	ComputeVariances(g->nfeats, mu, cov); /* It initializes the variances */
 	
 	/* Supervised phase */

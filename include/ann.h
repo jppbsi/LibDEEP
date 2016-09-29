@@ -11,6 +11,7 @@
 #include "auxiliary.h"
 #include "math_functions.h"
 
+void k_Means(Subgraph *g, gsl_matrix *mu, int k); /* It computes the cluster centroids by k-means clustering */
 gsl_matrix *ComputeHiddenLayerOutput(Subgraph *g, gsl_matrix *mu, gsl_matrix **cov); /* It computes matrix Phi */
 gsl_matrix *TrainANNbyOPF(Subgraph *g, gsl_matrix *mu, gsl_matrix **cov, int kmax); /* It trains the neural network by OPF and outputs the matrix of weights */
 gsl_matrix *TrainANNbyKMeans(Subgraph *g, gsl_matrix *mu, gsl_matrix **cov, int kvalue); /* It trains the neural network by K-Means and outputs the matrix of weights */
