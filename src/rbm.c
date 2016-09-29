@@ -294,7 +294,7 @@ void InitializeWeights(RBM *m){
         for(i = 0; i < m->n_visible_layer_neurons; i++){
             for(j = 0; j < m->n_hidden_layer_neurons; j++){
 		do{   
-		    gsl_matrix_set(m->W, i, j, gsl_ran_gaussian(r, 0.01));
+		    gsl_matrix_set(m->W, i, j, gsl_ran_gaussian(r, 0.1));
 		}while(isnan(gsl_matrix_get(m->W, i, j)));
             }
 	}

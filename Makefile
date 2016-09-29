@@ -26,6 +26,7 @@ $(OBJ)/dbm.o \
 $(OBJ)/dbn.o \
 $(OBJ)/pca.o \
 $(OBJ)/epnn.o \
+$(OBJ)/ann.o \
 
 	ar csr $(LIB)/libDeep.a \
 $(OBJ)/deep.o \
@@ -39,6 +40,7 @@ $(OBJ)/dbm.o \
 $(OBJ)/dbn.o \
 $(OBJ)/pca.o \
 $(OBJ)/epnn.o \
+$(OBJ)/ann.o \
 
 
 $(OBJ)/deep.o: $(SRC)/deep.c
@@ -80,6 +82,10 @@ $(OBJ)/epnn.o: $(SRC)/epnn.c
 $(OBJ)/pca.o: $(SRC)/pca.c
 	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/pca.c \
 	-o $(OBJ)/pca.o
+
+$(OBJ)/ann.o: $(SRC)/ann.c
+	$(CC) $(FLAGS) -I $(INCLUDE) -I $(OPF_DIR)/include -I $(OPF_DIR)/include/util -I /usr/local/include -c $(SRC)/ann.c \
+	-o $(OBJ)/ann.o
 
 clean:
 	rm -f $(LIB)/lib*.a; rm -f $(OBJ)/*.o rm -f $(BIN)/*
