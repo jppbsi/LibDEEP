@@ -10,10 +10,7 @@
 
 double SigmoidLogistic(double x); /* It computes the Sigmoid Logistic function */
 double SoftPlus(double x); /* It computes the Soft Plus function */
-<<<<<<< HEAD
 double Hamming_Distance(double *x, double *y, int n); /* It computes the Hamming Distance between two binary vectors */
-gsl_matrix *CovarianceMatrix(gsl_matrix *M); /* It computes the covariance matrix */
-=======
 double Euclidean_Distance(gsl_vector *x, gsl_vector *y); /* It computes the Euclidean Distance between two vectors */
 
 gsl_matrix *CovarianceMatrix(gsl_matrix *M); /* It computes the covariance matrix */
@@ -21,4 +18,3 @@ void ComputeVariances(int size, gsl_matrix *mu, gsl_matrix **cov); /* It compute
 double Determinant(gsl_matrix *m); /* It computes the matrix determinant */
 double GaussianDensity(gsl_matrix **cov, gsl_matrix *mu, gsl_vector *x, int j); /* It computes the a multivariate gaussian density of a sample x */
 gsl_matrix *PseudoInverse(gsl_matrix *A); /* It computes the MooreÐPenrose Pseudoinverse A+ = VS^+U^T */
->>>>>>> e6cf91b632d107bc50f286471359df580ad08dc9

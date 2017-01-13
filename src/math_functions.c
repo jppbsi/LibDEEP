@@ -25,7 +25,6 @@ double SoftPlus(double x){
     return y;
 }
 
-<<<<<<< HEAD
 /* It computes the Hamming Distance between two binary vectors
 Parameters: [x, y]
 x: input first vector
@@ -40,7 +39,8 @@ double Hamming_Distance(double *x, double *y, int n){
     }
 
     return d;
-=======
+}
+
 /* It computes the Euclidean Distance between two vectors
 Parameters: [x, y]
 x: first vector
@@ -53,7 +53,6 @@ double Euclidean_Distance(gsl_vector *x, gsl_vector *y){
         sum += pow(gsl_vector_get(x,i)-gsl_vector_get(y,i),2);
     
     return sqrt(sum);
->>>>>>> e6cf91b632d107bc50f286471359df580ad08dc9
 }
 
 /* It computes the covariance matrix
