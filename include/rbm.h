@@ -53,6 +53,7 @@ void PrintVisibleUnits(RBM *m); /* It prints the visible units */
 void PrintHiddenUnits(RBM *m); /* It prints the hidden units */
 void PrintHiddenDropoutUnits(RBM *m); /* It prints the hidden dropout units */
 void PrintDropconnectWeight(RBM *m); /* It prints the dropconnect matrix mask */
+void SaveRBMFeatures(char *s, Dataset *D, RBM *m); /* It saves the learned features from the hidden vector neurons */
 void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, int height); /* It writes the weight matrix as PGM images without using CV */
 
 /* Bernoulli-Bernoulli RBM training */

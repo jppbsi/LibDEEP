@@ -9,25 +9,25 @@ n_hidden_layer_neurons: numbder of hidden neurons
 n_labels: number of labels */
 RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_labels){
     RBM *m = NULL;
-    
+
     m = (RBM *)malloc(sizeof(RBM));
     if(!m){
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->n_visible_layer_neurons = n_visible_layer_neurons;
     m->n_hidden_layer_neurons = n_hidden_layer_neurons;
     m->n_labels = n_labels;
     m->t = 1.0;
-    
+
     m->v = NULL;
     m->v = gsl_vector_alloc(n_visible_layer_neurons);
     if(!m->v){
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->a = NULL;
     m->a = gsl_vector_alloc(n_visible_layer_neurons);
     if(!m->a){
@@ -41,28 +41,28 @@ RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_la
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->b = NULL;
     m->b = gsl_vector_alloc(n_hidden_layer_neurons);
     if(!m->b){
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->W = NULL;
     m->W = gsl_matrix_alloc(m->n_visible_layer_neurons, n_hidden_layer_neurons);
     if(!m->W){
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->c = NULL;
     m->c = gsl_vector_alloc(m->n_labels);
     if(!m->c){
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->r = NULL;
     m->r = gsl_vector_alloc(n_hidden_layer_neurons);
     gsl_vector_set_all(m->r, 1);
@@ -70,7 +70,7 @@ RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_la
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->M = NULL;
     m->M = gsl_matrix_alloc(m->n_visible_layer_neurons, n_hidden_layer_neurons);
     gsl_matrix_set_all(m->M, 1);
@@ -78,14 +78,14 @@ RBM *CreateRBM(int n_visible_layer_neurons, int n_hidden_layer_neurons, int n_la
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     m->U = NULL;
     m->U = gsl_matrix_alloc(m->n_labels, n_hidden_layer_neurons);
     if(!m->U){
         fprintf(stderr,"\nUnable to alloc memory @CreateRBM.\n");
         exit(-1);
     }
-    
+
     return m;
 }
 
@@ -97,11 +97,11 @@ n_labels: number of labels
 sigma: array with the variance values associated to each visible unit */
 RBM *CreateDRBM(int n_visible_units, int n_hidden_units, int n_labels, gsl_vector *sigma){
     RBM *r = NULL;
-    
+
     r = CreateRBM(n_visible_units, n_hidden_units, n_labels);
     r->sigma = gsl_vector_calloc(sigma->size);
     gsl_vector_memcpy(r->sigma, sigma);
-    
+
     return r;
 }
 
@@ -114,19 +114,19 @@ sigma: array with the variance values associated to each visible unit */
 RBM *CreateNewDRBM(int n_visible_units, int n_hidden_units, int n_labels, double *sigma){
     int i;
     RBM *r = NULL;
-    
+
     r = CreateRBM(n_visible_units, n_hidden_units, n_labels);
     r->sigma = gsl_vector_calloc(n_visible_units);
     for (i = 0; i < r->sigma->size; i++)
 	gsl_vector_set(r->sigma, i, sigma[i]);
-    
+
     return r;
 }
 
 /* It deallocates an RBM
 Parameters: [m]
 m: RBM */
-void DestroyRBM(RBM **m){   
+void DestroyRBM(RBM **m){
     if(*m){
         if((*m)->v) gsl_vector_free((*m)->v);
         if((*m)->h) gsl_vector_free((*m)->h);
@@ -162,7 +162,7 @@ D: dataset */
 void InitializeBias4VisibleUnits(RBM *m, Dataset *D){
     int i, j;
     float *prob = NULL;
-    
+
     if(D){
         prob = (float *)calloc(D->nfeatures, sizeof(float));
         for(i = 0; i < D->size; i++)
@@ -177,7 +177,7 @@ void InitializeBias4VisibleUnits(RBM *m, Dataset *D){
     }else{
         fprintf(stderr,"\nDataset not allocated @InitializeBias4VisibleUnits.\n");
         exit(-1);
-    }  
+    }
 }
 
 /* It initializes the bias of visible units with small random values [0,1]
@@ -187,7 +187,7 @@ void InitializeBias4VisibleUnitsWithRandomValues(RBM *m){
     int i;
     const gsl_rng_type * T;
     gsl_rng *r;
-    
+
     if(m){
         gsl_rng_env_setup();
         T = gsl_rng_default;
@@ -206,7 +206,7 @@ Parameters: [m]
 m: RBM */
 void InitializeBias4HiddenUnits(RBM *m){
     int i;
-    
+
     if(m){
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
             gsl_vector_set(m->b, i, 0.0);
@@ -224,7 +224,7 @@ void InitializeBias4DropoutHiddenUnits(RBM *m, double p){
     int i;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     if(m){
 	srand(time(NULL));
 	T = gsl_rng_default;
@@ -236,7 +236,7 @@ void InitializeBias4DropoutHiddenUnits(RBM *m, double p){
     }else{
         fprintf(stderr,"\nThere is not an RBM allocated @InitializeBias4DropoutHiddenUnits.\n");
         exit(-1);
-    } 
+    }
 }
 
 /* It initializes the bias of dropconnect
@@ -247,7 +247,7 @@ void InitializeBias4DropconnectWeight(RBM *m, double p){
     int i, j;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     if(m){
 	srand(time(NULL));
 	T = gsl_rng_default;
@@ -260,7 +260,7 @@ void InitializeBias4DropconnectWeight(RBM *m, double p){
     }else{
         fprintf(stderr,"\nThere is not an RBM allocated @InitializeBias4Dropconnect.\n");
         exit(-1);
-    } 
+    }
 }
 
 /* It initializes the bias of label units
@@ -268,7 +268,7 @@ Parameters: [m]
 m: RBM */
 void InitializeBias4LabelUnits(RBM *m){
     int i;
-    
+
     if(m){
         for(i = 0; i < m->n_labels; i++)
             gsl_vector_set(m->c, i, 0.0);
@@ -285,15 +285,15 @@ void InitializeWeights(RBM *m){
     int i,j;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
-    if(m){    
+
+    if(m){
 	srand(time(NULL));
 	T = gsl_rng_default;
 	r = gsl_rng_alloc(T);
 	gsl_rng_set(r, random_seed_deep());
         for(i = 0; i < m->n_visible_layer_neurons; i++){
             for(j = 0; j < m->n_hidden_layer_neurons; j++){
-		do{   
+		do{
 		    gsl_matrix_set(m->W, i, j, gsl_ran_gaussian(r, 0.1));
 		}while(isnan(gsl_matrix_get(m->W, i, j)));
             }
@@ -312,7 +312,7 @@ void InitializeLabelWeights(RBM *m){
     int i,j;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     if(m){
         srand(time(NULL));
 	T = gsl_rng_default;
@@ -321,11 +321,11 @@ void InitializeLabelWeights(RBM *m){
         for(i = 0; i < m->n_labels; i++)
             for(j = 0; j < m->n_hidden_layer_neurons; j++)
                 gsl_matrix_set(m->U, i, j, gsl_ran_gaussian(r, 0.01));
-        gsl_rng_free(r);  
+        gsl_rng_free(r);
     }else{
         fprintf(stderr,"\nThere is not an RBM allocated @InitializeLabelWeights.\n");
         exit(-1);
-    }  
+    }
 }
 
 /* It sets the visible layer of a Restricted Boltzmann Machine
@@ -334,7 +334,7 @@ m: RBM
 *visible_layer: array of visible layer's ID */
 void setVisibleLayer(RBM *m, gsl_vector *visible_layer){
     int i;
-    
+
     if(m){
         for(i = 0; i < m->n_visible_layer_neurons; i++)
             gsl_vector_set(m->v, i, gsl_vector_get(visible_layer, i));
@@ -350,7 +350,7 @@ Parameters: [m]
 m: RBM */
 void PrintVisibleUnitsBias(RBM *m){
     int i;
-    
+
     if(m){
         fprintf(stderr,"\nShowing visible units' bias ...");
         for(i = 0; i < m->n_visible_layer_neurons; i++)
@@ -363,7 +363,7 @@ Parameters: [m]
 m: RBM */
 void PrintWeights(RBM *m){
     int i, j;
-    
+
     if(m){
         fprintf(stderr,"\nShowing weights ...");
         for(i = 0; i < m->n_visible_layer_neurons; i++)
@@ -377,7 +377,7 @@ Parameters: [m]
 m: RBM */
 void PrintLabelWeights(RBM *m){
     int i, j;
-    
+
     if(m){
         fprintf(stderr,"\nShowing weights ...");
         for(i = 0; i < m->n_labels; i++)
@@ -391,7 +391,7 @@ Parameters: [m]
 m: RBM */
 void PrintVisibleUnits(RBM *m){
     int i, c = 0;
-    
+
     if(m){
         for(i = 0; i < m->n_visible_layer_neurons; i++){
             fprintf(stderr,"\nv[%d]: %lf", i, gsl_vector_get(m->v, i));
@@ -407,7 +407,7 @@ Parameters: [m]
 m: RBM */
 void PrintHiddenUnits(RBM *m){
     int i, c = 0;
-    
+
     if(m){
         for(i = 0; i < m->n_hidden_layer_neurons; i++){
             fprintf(stderr,"\nh[%d]: %lf", i, gsl_vector_get(m->h, i));
@@ -423,7 +423,7 @@ Parameters: [m]
 m: RBM */
 void PrintHiddenDropoutUnits(RBM *m){
     int i;
-    
+
     if(m){
         for(i = 0; i < m->n_hidden_layer_neurons; i++) {
             fprintf(stderr,"\nr[%d]: %lf", i, gsl_vector_get(m->r, i));
@@ -436,7 +436,7 @@ Parameters: [m]
 m: RBM */
 void PrintDropconnectWeight(RBM *m){
     int i, j;
-    
+
     if(m){
         for(i = 0; i < m->n_visible_layer_neurons; i++){
 	    for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -444,6 +444,30 @@ void PrintDropconnectWeight(RBM *m){
 	    }
 	}
     }else fprintf(stderr,"\nRBM not allocated @PrintDropconnectWeight.\n");
+}
+
+/* It saves the learned features from the hidden vector neurons
+Parameters: [D, m]
+D: dataset
+m: RBM */
+void SaveRBMFeatures(char *s, Dataset *D, RBM *m){
+    int i, j;
+    gsl_vector *h_features = NULL;
+    FILE *f = NULL;
+
+    f = fopen(s, "w+");
+    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
+
+    for (i = 0; i < D->size; i++){
+        h_features = getProbabilityTurningOnHiddenUnit(m, D->sample[i].feature);
+        fprintf(f, "%d %d", i, D->sample[i].label);
+        for (j = 0; j < m->n_hidden_layer_neurons; j++)
+	       fprintf(f, " %lf", gsl_vector_get(h_features, j));
+        fprintf(f, "\n");
+    }
+
+    gsl_vector_free(h_features);
+    fclose(f);
 }
 
 /* It writes the weight matrix as PGM images without using CV
@@ -463,7 +487,7 @@ void SaveWeightsWithoutCV(RBM *m, char *name, int indexHiddenUnit, int width, in
 
     min=1000000;
     max=-1000000;
-   
+
     for(i = 0; i < (width*height); i++){
 	if(gsl_matrix_get(m->W, i, indexHiddenUnit) < min)
 	    min=gsl_matrix_get(m->W, i, indexHiddenUnit);
@@ -498,44 +522,44 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1 = NULL, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
 	fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
-        for(n = 1; n <= n_batches; n++){    
+        for(n = 1; n <= n_batches; n++){
 	    ctr = 0;
             error = pl = 0;
             gsl_matrix_set_zero(CDpos);
@@ -544,20 +568,20 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
                     for(i = 1; i <= n_CD_iterations; i++){
 			/* It computes the P(h=1|v1), i.e., it computes h1 */
@@ -572,7 +596,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -580,7 +604,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -593,38 +617,38 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -636,7 +660,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -644,7 +668,7 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -654,33 +678,33 @@ double BernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, int n_epo
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -701,42 +725,42 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1 = NULL, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -747,23 +771,23 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-	    
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
                     for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
@@ -778,7 +802,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -786,7 +810,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-			                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -794,44 +818,44 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
                             if(gsl_vector_get(tmp_probhn, j) >= sample) gsl_vector_set(m->h, j, 1.0);
                             else gsl_vector_set(m->h, j, 0.0);
                         }
-						
+
                         if (i == n_CD_iterations){ /* In case of n_CD_iterations > 1 */
                             gsl_vector_memcpy(probhn, tmp_probhn);
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-			
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -843,7 +867,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -851,7 +875,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -861,33 +885,33 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -908,44 +932,44 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1 = NULL, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
 	fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
-        for(n = 1; n <= n_batches; n++){    
+        for(n = 1; n <= n_batches; n++){
 	    ctr = 0;
             error = pl = 0;
             gsl_matrix_set_zero(CDpos);
@@ -954,23 +978,23 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes M for dropconnecting weight matrix */
 		InitializeBias4DropconnectWeight(m, p);
-		
+
 		if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
                     for(i = 1; i <= n_CD_iterations; i++){
 			/* It computes the P(h=1|v1), i.e., it computes h1 */
@@ -985,7 +1009,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         tmp_probvn = getProbabilityTurningOnVisibleUnit4Dropconnect(m, m->M, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -993,7 +1017,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4Dropconnect(m, m->M, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1006,38 +1030,38 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -1049,7 +1073,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -1057,7 +1081,7 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -1067,33 +1091,33 @@ double BernoulliRBMTrainingbyContrastiveDivergencewithDropconnect(Dataset *D, RB
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -1113,44 +1137,44 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-        
+
     error = 0;
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -1161,22 +1185,22 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
+                    for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1189,11 +1213,11 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit(m, aux);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -1201,7 +1225,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1215,38 +1239,38 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -1258,7 +1282,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -1266,7 +1290,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -1276,19 +1300,19 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -1296,7 +1320,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -1304,7 +1328,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergence(Dataset *D, RBM *m,
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-        
+
     return error;
 }
 
@@ -1325,45 +1349,45 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-        
+
     error = 0;
-    
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -1374,25 +1398,25 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-    
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
+                    for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1405,11 +1429,11 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, m->h);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, aux);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -1417,7 +1441,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1431,38 +1455,38 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -1474,7 +1498,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -1482,7 +1506,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -1492,19 +1516,19 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -1512,7 +1536,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -1520,7 +1544,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropout(Dataset 
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-        
+
     return error;
 }
 
@@ -1541,44 +1565,44 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-        
+
     error = 0;
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -1589,7 +1613,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes M for dropconnecting weight matrix */
 		InitializeBias4DropconnectWeight(m, p);
@@ -1598,15 +1622,15 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
+                    for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4Dropconnect(m, m->M, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1619,11 +1643,11 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit4Dropconnect(m, m->M, m->h);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit4Dropconnect(m, m->M, aux);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -1631,7 +1655,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4Dropconnect(m, m->M, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1645,38 +1669,38 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -1688,7 +1712,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -1696,7 +1720,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -1706,19 +1730,19 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -1726,7 +1750,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -1734,7 +1758,7 @@ double BernoulliRBMTrainingbyPersistentContrastiveDivergencewithDropconnect(Data
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-        
+
     return error;
 }
 
@@ -1755,51 +1779,51 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     /* Fast weights purposes */
     fast_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     g = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     fast_eta = m->eta;
     ratio = 19.0/20.0;
-        
+
     error = 0;
-    
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -1810,22 +1834,22 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_gibbs_sampling; i++){ 
+                    for(i = 1; i <= n_gibbs_sampling; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1838,11 +1862,11 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit4FPCD(m, m->h, fast_W);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit(m, aux);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -1850,7 +1874,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4FPCD(m, m->v, fast_W);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -1864,38 +1888,38 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates regular weights */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -1908,7 +1932,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -1916,7 +1940,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -1925,25 +1949,25 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
             gsl_vector_add(tmpb, ctr_probh1); /* It performs b' = alpha*b' + eta*(P(h1 = 1|v1) - P(h2 = 1|v2)) */
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
-	    
+
 	    /* It updates fast weights */
 	    gsl_matrix_scale(g, fast_eta); /* It computes g*fast_learning_rate */
 	    gsl_matrix_scale(fast_W, ratio); /* It computes fast_W*19/20 */
 	    gsl_matrix_add(fast_W, g); /* It computes fast_W = fast_W*19/20 + gradient*fast_learning_rate */
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -1951,7 +1975,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -1961,7 +1985,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(Dataset *D, RBM
     gsl_matrix_free(last_probhn);
     gsl_matrix_free(fast_W);
     gsl_matrix_free(g);
-        
+
     return error;
 }
 
@@ -1983,51 +2007,51 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     /* Fast weights purposes */
     fast_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     g = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     fast_eta = m->eta;
     ratio = 19.0/20.0;
-        
+
     error = 0;
-    
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -2038,26 +2062,26 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-    
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_gibbs_sampling; i++){ 
-                    
+                    for(i = 1; i <= n_gibbs_sampling; i++){
+
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2070,11 +2094,11 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4FPCD(m, m->r, m->h, fast_W);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, aux);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -2082,7 +2106,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4FPCD(m, m->r, m->v, fast_W);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2096,38 +2120,38 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates regular weights */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -2140,7 +2164,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -2148,7 +2172,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -2157,25 +2181,25 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
             gsl_vector_add(tmpb, ctr_probh1); /* It performs b' = alpha*b' + eta*(P(h1 = 1|v1) - P(h2 = 1|v2)) */
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
-	    
+
 	    /* It updates fast weights */
 	    gsl_matrix_scale(g, fast_eta); /* It computes g*fast_learning_rate */
 	    gsl_matrix_scale(fast_W, ratio); /* It computes fast_W*19/20 */
 	    gsl_matrix_add(fast_W, g); /* It computes fast_W = fast_W*19/20 + gradient*fast_learning_rate */
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -2183,7 +2207,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -2193,7 +2217,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropout(Data
     gsl_matrix_free(last_probhn);
     gsl_matrix_free(fast_W);
     gsl_matrix_free(g);
-        
+
     return error;
 }
 
@@ -2215,51 +2239,51 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     /* Fast weights purposes */
     fast_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     g = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     fast_eta = m->eta;
     ratio = 19.0/20.0;
-        
+
     error = 0;
-    
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -2270,7 +2294,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes M for dropconnecting weight matrix */
 		InitializeBias4DropconnectWeight(m, p);
@@ -2279,15 +2303,15 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_gibbs_sampling; i++){ 
+                    for(i = 1; i <= n_gibbs_sampling; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4Dropconnect(m, m->M, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2300,11 +2324,11 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit4FPCD4Dropconnect(m, m->M, m->h, fast_W);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit4Dropconnect(m, m->M, aux);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -2312,7 +2336,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4FPCD4Dropconnect(m, m->M, m->v, fast_W);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2326,38 +2350,38 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates regular weights */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -2370,7 +2394,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -2378,7 +2402,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -2387,25 +2411,25 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
             gsl_vector_add(tmpb, ctr_probh1); /* It performs b' = alpha*b' + eta*(P(h1 = 1|v1) - P(h2 = 1|v2)) */
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
-	    
+
 	    /* It updates fast weights */
 	    gsl_matrix_scale(g, fast_eta); /* It computes g*fast_learning_rate */
 	    gsl_matrix_scale(fast_W, ratio); /* It computes fast_W*19/20 */
 	    gsl_matrix_add(fast_W, g); /* It computes fast_W = fast_W*19/20 + gradient*fast_learning_rate */
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -2413,7 +2437,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -2423,7 +2447,7 @@ double BernoulliRBMTrainingbyFastPersistentContrastiveDivergencewithDropconnect(
     gsl_matrix_free(last_probhn);
     gsl_matrix_free(fast_W);
     gsl_matrix_free(g);
-        
+
     return error;
 }
 
@@ -2443,48 +2467,48 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
     double sample, error, errorsum, train_error;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     _negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     _posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     _negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     delta_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     delta_U = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     acc_v0 = gsl_vector_calloc(m->n_visible_layer_neurons);
     acc_v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     acc_h0 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_h1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_y0 = gsl_vector_calloc(m->n_labels);
     acc_y1 = gsl_vector_calloc(m->n_labels);
-    
+
     delta_a = gsl_vector_calloc(m->n_visible_layer_neurons);
     delta_b = gsl_vector_calloc(m->n_hidden_layer_neurons);
     delta_c = gsl_vector_calloc(m->n_labels);
-    
+
     train_error = 0;
-    
+
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -2500,16 +2524,16 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_vector_set_zero(acc_y0);
             gsl_vector_set_zero(acc_y1);
 
-            
+
             for(t = 0; t < batch_size; t++){
-	
+
                 if(z < D->size){
                     ctr++;
                     setVisibleLayer(m, D->sample[z].feature);
                     gsl_vector_add(acc_v0, m->v);
                     y0 = label2binary_gsl_vector(D->sample[z].label, D->nlabels);
                     gsl_vector_add(acc_y0, y0);
-		                
+
                     /* It computes the P(h0|v0,y0) */
                     ph0 = getDiscriminativeProbabilityTurningOnHiddenUnit(m, y0);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2518,7 +2542,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h0, ph0);
-            
+
                     /* It computes the P(v1|h0) */
                     pv1 = getProbabilityTurningOnVisibleUnit(m, m->h);
                     for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -2527,14 +2551,14 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
                         else gsl_vector_set(m->v, j, 0.0);
                     }
                     gsl_vector_add(acc_v1, m->v);
-		    
-            
+
+
                     /* It computes the P(y1|h0) */
                     py1 = getDiscriminativeProbabilityLabelUnit(m);
                     y1 = gsl_vector_calloc(py1->size);
                     gsl_vector_set(y1, gsl_vector_max_index(py1), 1.0); /* It samples the class with highest probability */
                     gsl_vector_add(acc_y1, y1);
-            
+
                     /* It computes the P(h1|y1,v1) */
                     ph1 = getDiscriminativeProbabilityTurningOnHiddenUnit(m, y1);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2543,42 +2567,42 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h1, ph1);
-            
+
                     for(i = 0; i < _posW->size1; i++){
                         for(j = 0; j < _posW->size2; j++){
                             gsl_matrix_set(_posW, i, j, gsl_vector_get(ph0, j)*gsl_vector_get(D->sample[z].feature, i));
                             gsl_matrix_set(_negW, i, j, gsl_vector_get(ph1, j)*gsl_vector_get(m->v, i));
                         }
                     }
-            
+
                     for(i = 0; i < _posU->size1; i++){
                         for(j = 0; j < _posU->size2; j++){
                             gsl_matrix_set(_posU, i, j, gsl_vector_get(ph0, j)*gsl_vector_get(y0, i));
                             gsl_matrix_set(_negU, i, j, gsl_vector_get(ph1, j)*gsl_vector_get(y1, i));
                         }
                     }
-            
+
                     gsl_matrix_add(posW, _posW);
                     gsl_matrix_add(negW, _negW);
-            
+
                     gsl_matrix_add(posU, _posU);
                     gsl_matrix_add(negU, _negU);
-            
+
                     error+=getReconstructionError(y0, py1);
-            
+
                     gsl_vector_free(y0);
                     gsl_vector_free(y1);
                     gsl_vector_free(py1);
                     gsl_vector_free(ph0);
                     gsl_vector_free(ph1);
                     gsl_vector_free(pv1);
-                
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
-        
+
             /* Updating W parameter */
             gsl_matrix_sub(posW, negW); /* posW = posW-negW */
             gsl_matrix_scale(posW, 1.0/ctr);
@@ -2589,7 +2613,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_matrix_scale(delta_W, m->alpha); /* delta_W = alpha*delta_W */
             gsl_matrix_add(delta_W, posW); /* delta_W = eta*(posW-negW) - lambda*W * alpha*delta_W */
             gsl_matrix_add(m->W, delta_W); /* W = W + delta_W */
-        
+
             /* Updating U parameter */
             gsl_matrix_sub(posU, negU); /* posU = posU-negU */
             gsl_matrix_scale(posU, 1.0/ctr);
@@ -2600,7 +2624,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_matrix_scale(delta_U, m->alpha); /* delta_U = alpha*delta_U */
             gsl_matrix_add(delta_U, posU); /* delta_U = eta*(posU-negU) -lambda*U + alpha*delta_U */
             gsl_matrix_add(m->U, delta_U); /* U = U + delta_U */
-        
+
             /* Updating a parameter */
             gsl_vector_sub(acc_v0, acc_v1); /* v0 = v0 - v1 */
             gsl_vector_scale(acc_v0, 1.0/ctr);
@@ -2608,7 +2632,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_vector_scale(delta_a, m->alpha); /* delta_a = alpha*delta_a */
             gsl_vector_add(delta_a, acc_v0); /* delta_a = eta*(v0-v1) + alpha*delta_a */
             gsl_vector_add(m->a, delta_a); /* a = a + delta_a */
-        
+
             /* Updating b parameter */
             gsl_vector_sub(acc_h0, acc_h1); /* h0 = h0 - h1 */
             gsl_vector_scale(acc_h0, 1.0/ctr);
@@ -2616,7 +2640,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_vector_scale(delta_b, m->alpha); /* delta_b = alpha*delta_b */
             gsl_vector_add(delta_b, acc_h0); /* delta_b = eta*(h0 - h1) + alpha*delta_b */
             gsl_vector_add(m->b, delta_b); /* b = b + delta_b */
-        
+
             /* Updating c parameter */
             gsl_vector_sub(acc_y0, acc_y1); /* y0 = y0 - y1 */
             gsl_vector_scale(acc_y0, 1.0/ctr);
@@ -2624,13 +2648,13 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
             gsl_vector_scale(delta_c, m->alpha); /* delta_c = alpha*delta_c */
             gsl_vector_add(delta_c, acc_y0); /* delta_c = eta*(y0 - y1) + alpha*delta_c */
             gsl_vector_add(m->c, delta_c); /* c = c + delta_c */
-	    
+
         }
-        
+
         fprintf(stderr,"MSE classification error: %lf OK", errorsum/n_batches);
         train_error = errorsum/n_batches;
     }
-    
+
     gsl_rng_free(r);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(tmpU);
@@ -2653,7 +2677,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM
     gsl_vector_free(delta_a);
     gsl_vector_free(delta_b);
     gsl_vector_free(delta_c);
-    
+
     return train_error;
 }
 
@@ -2674,48 +2698,48 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
     double sample, error, errorsum, train_error;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     _negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     _posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     _negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     delta_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     delta_U = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     acc_v0 = gsl_vector_calloc(m->n_visible_layer_neurons);
     acc_v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     acc_h0 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_h1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_y0 = gsl_vector_calloc(m->n_labels);
     acc_y1 = gsl_vector_calloc(m->n_labels);
-    
+
     delta_a = gsl_vector_calloc(m->n_visible_layer_neurons);
     delta_b = gsl_vector_calloc(m->n_hidden_layer_neurons);
     delta_c = gsl_vector_calloc(m->n_labels);
-    
+
     train_error = 0;
-    
+
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -2731,18 +2755,18 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
             gsl_vector_set_zero(acc_y0);
             gsl_vector_set_zero(acc_y1);
 
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-	    		
+
                 if(z < D->size){
                     ctr++;
                     setVisibleLayer(m, D->sample[z].feature);
                     gsl_vector_add(acc_v0, m->v);
                     y0 = label2binary_gsl_vector(D->sample[z].label, D->nlabels);
                     gsl_vector_add(acc_y0, y0);
-            
+
                     /* It computes the P(h0|v0,y0) */
                     ph0 = getDiscriminativeProbabilityTurningOnHiddenUnit4Dropout(m, m->r, y0);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2751,7 +2775,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h0, ph0);
-            
+
                     /* It computes the P(v1|h0) */
                     pv1 = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, m->h);
                     for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -2760,13 +2784,13 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
                         else gsl_vector_set(m->v, j, 0.0);
                     }
                     gsl_vector_add(acc_v1, m->v);
-            
+
                     /* It computes the P(y1|h0) */
                     py1 = getDiscriminativeProbabilityLabelUnit(m);
                     y1 = gsl_vector_calloc(py1->size);
                     gsl_vector_set(y1, gsl_vector_max_index(py1), 1.0); /* It samples the class with highest probability */
                     gsl_vector_add(acc_y1, y1);
-            
+
                     /* It computes the P(h1|y1,v1) */
                     ph1 = getDiscriminativeProbabilityTurningOnHiddenUnit4Dropout(m, m->r, y1);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2775,42 +2799,42 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h1, ph1);
-            
+
                     for(i = 0; i < _posW->size1; i++){
                         for(j = 0; j < _posW->size2; j++){
                             gsl_matrix_set(_posW, i, j, gsl_vector_get(ph0, j)*gsl_vector_get(D->sample[z].feature, i));
                             gsl_matrix_set(_negW, i, j, gsl_vector_get(ph1, j)*gsl_vector_get(m->v, i));
                         }
                     }
-            
+
                     for(i = 0; i < _posU->size1; i++){
                         for(j = 0; j < _posU->size2; j++){
                             gsl_matrix_set(_posU, i, j, gsl_vector_get(ph0, j)*gsl_vector_get(y0, i));
                             gsl_matrix_set(_negU, i, j, gsl_vector_get(ph1, j)*gsl_vector_get(y1, i));
                         }
                     }
-            
+
                     gsl_matrix_add(posW, _posW);
                     gsl_matrix_add(negW, _negW);
-            
+
                     gsl_matrix_add(posU, _posU);
                     gsl_matrix_add(negU, _negU);
-            
+
                     error+=getReconstructionError(y0, py1);
-		                
+
                     gsl_vector_free(y0);
                     gsl_vector_free(y1);
                     gsl_vector_free(py1);
                     gsl_vector_free(ph0);
                     gsl_vector_free(ph1);
                     gsl_vector_free(pv1);
-                
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
-        
+
             /* Updating W parameter */
             gsl_matrix_sub(posW, negW); /* posW = posW-negW */
             gsl_matrix_scale(posW, 1.0/ctr);
@@ -2821,7 +2845,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
             gsl_matrix_scale(delta_W, m->alpha); /* delta_W = alpha*delta_W */
             gsl_matrix_add(delta_W, posW); /* delta_W = eta*(posW-negW) - lambda*W * alpha*delta_W */
             gsl_matrix_add(m->W, delta_W); /* W = W + delta_W */
-        
+
             /* Updating U parameter */
             gsl_matrix_sub(posU, negU); /* posU = posU-negU */
             gsl_matrix_scale(posU, 1.0/ctr);
@@ -2832,7 +2856,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
             gsl_matrix_scale(delta_U, m->alpha); /* delta_U = alpha*delta_U */
             gsl_matrix_add(delta_U, posU); /* delta_U = eta*(posU-negU) -lambda*U + alpha*delta_U */
             gsl_matrix_add(m->U, delta_U); /* U = U + delta_U */
-        
+
             /* Updating a parameter */
             gsl_vector_sub(acc_v0, acc_v1); /* v0 = v0 - v1 */
             gsl_vector_scale(acc_v0, 1.0/ctr);
@@ -2840,7 +2864,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
             gsl_vector_scale(delta_a, m->alpha); /* delta_a = alpha*delta_a */
             gsl_vector_add(delta_a, acc_v0); /* delta_a = eta*(v0-v1) + alpha*delta_a */
             gsl_vector_add(m->a, delta_a); /* a = a + delta_a */
-        
+
             /* Updating b parameter */
             gsl_vector_sub(acc_h0, acc_h1); /* h0 = h0 - h1 */
             gsl_vector_scale(acc_h0, 1.0/ctr);
@@ -2848,7 +2872,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
             gsl_vector_scale(delta_b, m->alpha); /* delta_b = alpha*delta_b */
             gsl_vector_add(delta_b, acc_h0); /* delta_b = eta*(h0 - h1) + alpha*delta_b */
             gsl_vector_add(m->b, delta_b); /* b = b + delta_b */
-        
+
             /* Updating c parameter */
             gsl_vector_sub(acc_y0, acc_y1); /* y0 = y0 - y1 */
             gsl_vector_scale(acc_y0, 1.0/ctr);
@@ -2857,11 +2881,11 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
             gsl_vector_add(delta_c, acc_y0); /* delta_c = eta*(y0 - y1) + alpha*delta_c */
             gsl_vector_add(m->c, delta_c); /* c = c + delta_c */
         }
-        
+
         fprintf(stderr,"MSE classification error: %lf OK", errorsum/n_batches);
         train_error = errorsum/n_batches;
     }
-     
+
     gsl_rng_free(r);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(tmpU);
@@ -2884,7 +2908,7 @@ double DiscriminativeBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Data
     gsl_vector_free(delta_a);
     gsl_vector_free(delta_b);
     gsl_vector_free(delta_c);
-    
+
     return train_error;
 }
 
@@ -2904,42 +2928,42 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -2950,22 +2974,22 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
+                    for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2978,7 +3002,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -2986,7 +3010,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -2999,38 +3023,38 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
             gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
@@ -3042,7 +3066,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
             gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
@@ -3050,7 +3074,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
@@ -3060,33 +3084,33 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoch
             gsl_vector_add(m->b, tmpb); // it performs b = b + b'
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -3107,42 +3131,42 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -3153,25 +3177,25 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-	    		
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
+                    for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4DBM(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3184,7 +3208,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(m, m->r, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -3192,7 +3216,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4DBM(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3205,38 +3229,38 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); //it averages CDpos
             gsl_matrix_scale(CDneg, 1.0/batch_size); //it averages CDneg
@@ -3248,7 +3272,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
             gsl_matrix_add(tmpW, auxW); // it performs W' = W-lambda*W' (weight decay)
             gsl_matrix_add(tmpW, CDpos); // it performs W' = W'+eta*(CDpos-CDneg)
             gsl_matrix_add(m->W, tmpW); // it performs W = W+W'
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); //it averages v1
             gsl_vector_scale(vn, 1.0/batch_size); //it averages vn
             gsl_vector_sub(v1, vn); // it performs v1-vn
@@ -3256,7 +3280,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
             gsl_vector_scale(tmpa, m->alpha); // it performs a'= alpha*a'
             gsl_vector_add(tmpa, v1); //it performs a' = alpha*a' + eta(v1-vn)
             gsl_vector_add(m->a, tmpa); //it performs a = a + a'*/
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); //it averages P(h1 = 1|v1)
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); //it averages P(h2 = 1|v2)
             gsl_vector_scale(tmpb, m->alpha); //it performs b'= alpha*b'
@@ -3266,33 +3290,33 @@ double Bernoulli_TrainingRBMbyCD4DBM_BottomLayerwithDropout(Dataset *D, RBM *m, 
             gsl_vector_add(m->b, tmpb); // it performs b = b + b'
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -3312,42 +3336,42 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -3358,23 +3382,23 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
-                    
+                    for(i = 1; i <= n_CD_iterations; i++){
+
                         /* It computes the P(h_n=1|h_(n-1)) -> Equation 25 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3387,7 +3411,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(h_(n-1)=1|h_n)) -> Equation 24 */
                         tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -3395,7 +3419,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h_n=1|h_(n-1)) -> Equation 25 */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3408,38 +3432,38 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -3451,7 +3475,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -3459,7 +3483,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -3469,33 +3493,33 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs, 
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -3516,42 +3540,42 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -3562,26 +3586,26 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 	    	/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-		
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
-                    
+                    for(i = 1; i <= n_CD_iterations; i++){
+
                         /* It computes the P(h_n=1|h_(n-1)) -> Equation 25 */
                         tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3594,7 +3618,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(h_(n-1)=1|h_n)) -> Equation 24 */
                         tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4DBM(m, m->r, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -3602,7 +3626,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h_n=1|h_(n-1)) -> Equation 25 */
                         tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3615,38 +3639,38 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -3658,7 +3682,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -3666,7 +3690,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -3676,33 +3700,33 @@ double Bernoulli_TrainingRBMbyCD4DBM_TopLayerwithDropout(Dataset *D, RBM *m, int
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -3722,42 +3746,42 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -3768,23 +3792,23 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
-                    
+                    for(i = 1; i <= n_CD_iterations; i++){
+
                         /* It computes the P(h_k=1|h_(k-1)) -> Equation 27 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3797,7 +3821,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(h_(k-1)=1|h_k) -> Equation 26 */
                         tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -3805,7 +3829,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h_k=1|h_(k-1)) -> Equation 27 */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -3818,38 +3842,38 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -3861,7 +3885,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -3869,7 +3893,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -3879,33 +3903,33 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int 
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -3926,42 +3950,42 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
 
     error = 0;
-        
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -3972,26 +3996,26 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-		
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
-                    
+                    for(i = 1; i <= n_CD_iterations; i++){
+
                         /* It computes the P(h_k=1|h_(k-1)) -> Equation 27 */
                         tmp_probh1 = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4DBM(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4004,7 +4028,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(h_(k-1)=1|h_k) -> Equation 26 */
                         tmp_probvn = getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4DBM(m, m->r, m->h);
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -4012,7 +4036,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h_k=1|h_(k-1)) -> Equation 27 */
                         tmp_probhn = getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4DBM(m, m->r, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4025,38 +4049,38 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
                             gsl_vector_add(ctr_probhn, probhn);
                             gsl_vector_memcpy(probvn, tmp_probvn);
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -4068,7 +4092,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -4076,7 +4100,7 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -4086,33 +4110,33 @@ double Bernoulli_TrainingRBMbyCD4DBM_IntermediateLayerswithDropout(Dataset *D, R
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
 	pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
     gsl_vector_free(tmpb);
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
     gsl_matrix_free(tmpCDpos);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
-    
+
     return error;
 }
 
@@ -4132,45 +4156,45 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-        
+
     error = 0;
 
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -4181,23 +4205,23 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
-                    
+                    for(i = 1; i <= n_CD_iterations; i++){
+
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4210,11 +4234,11 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit(m, m->h);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -4222,7 +4246,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4236,38 +4260,38 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -4279,7 +4303,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -4287,7 +4311,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -4297,19 +4321,19 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -4317,7 +4341,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -4325,7 +4349,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_BottomLayer(Dataset *D, RBM *m, int n_epoc
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-        
+
     return error;
 }
 
@@ -4345,45 +4369,45 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-        
+
     error = 0;
 
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -4394,23 +4418,23 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
-                    
+                    for(i = 1; i <= n_CD_iterations; i++){
+
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4423,11 +4447,11 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -4435,7 +4459,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4449,38 +4473,38 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -4492,7 +4516,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -4500,7 +4524,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -4510,19 +4534,19 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -4530,7 +4554,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -4538,7 +4562,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_TopLayer(Dataset *D, RBM *m, int n_epochs,
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-        
+
     return error;
 }
 
@@ -4558,48 +4582,48 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL;
     gsl_rng *r;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
     vn = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     tmpa = gsl_vector_calloc(m->n_visible_layer_neurons);
     tmpb = gsl_vector_calloc(m->n_hidden_layer_neurons);
     gsl_vector_set_zero(tmpa);
     gsl_vector_set_zero(tmpb);
-    
+
     ctr_probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     ctr_probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     CDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     CDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDpos = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpCDneg = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     auxW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     gsl_matrix_set_zero(tmpW);
     gsl_matrix_set_zero(auxW);
-    
+
     last_probhn = gsl_matrix_calloc(batch_size, m->n_hidden_layer_neurons);
     aux = gsl_vector_calloc(m->n_hidden_layer_neurons);
-       
-    error = 0; 
+
+    error = 0;
 
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = plsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
-            
+
             ctr = 0;
             error = pl = 0;
             gsl_matrix_set_zero(CDpos);
@@ -4608,22 +4632,22 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
             gsl_vector_set_zero(vn);
             gsl_vector_set_zero(ctr_probh1);
             gsl_vector_set_zero(ctr_probhn);
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probhn = gsl_vector_calloc(m->n_hidden_layer_neurons);
                     probvn = gsl_vector_calloc(m->n_visible_layer_neurons);
-                
+
                     /* It sets v1 */
                     setVisibleLayer(m, D->sample[z].feature);
-                
+
                     /* It accumulates v1 */
                     gsl_vector_add(v1, m->v);
-                    
+
                     /* For each CD iteration */
-                    for(i = 1; i <= n_CD_iterations; i++){ 
+                    for(i = 1; i <= n_CD_iterations; i++){
                         /* It computes the P(h=1|v1), i.e., it computes h1 */
                         tmp_probh1 = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4636,11 +4660,11 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
                             gsl_vector_add(ctr_probh1, probh1);
                         }
                         gsl_vector_free(tmp_probh1);
-                    
+
                         /* It computes the P(v2=1|h1), i.e., it computes v2 */
                         if ((e == 1) && (n==1)) tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
                         else{
-			    gsl_matrix_get_row(aux, last_probhn, t); 
+			    gsl_matrix_get_row(aux, last_probhn, t);
 			    tmp_probvn = getProbabilityTurningOnVisibleUnit4DBM(m, m->h);
 			}
                         for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -4648,7 +4672,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
                             if(gsl_vector_get(tmp_probvn, j) >= sample) gsl_vector_set(m->v, j, 1.0);
                             else gsl_vector_set(m->v, j, 0.0);
                         }
-                
+
                         /* It computes the P(h2=1|v2), i.e., it computes h2 (hn) */
                         tmp_probhn = getProbabilityTurningOnHiddenUnit4DBM(m, m->v);
                         for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -4662,38 +4686,38 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
                             gsl_vector_memcpy(probvn, tmp_probvn);
 			    gsl_matrix_set_row(last_probhn, t, probhn); /* It saves the last chain elements of the current training sample */
                         }
-                    
+
                         gsl_vector_free(tmp_probhn);
                         gsl_vector_free(tmp_probvn);
                     }
-                
+
                     /* It accumulates vn */
                     gsl_vector_add(vn, m->v);
-                
+
                     for(i = 0; i < tmpCDpos->size1; i++){
                         for(j = 0; j < tmpCDpos->size2; j++){
                             gsl_matrix_set(tmpCDpos, i, j, gsl_vector_get(D->sample[z].feature, i)*gsl_vector_get(probh1, j));
                             gsl_matrix_set(tmpCDneg, i, j, gsl_vector_get(m->v, i)*gsl_vector_get(probhn, j));
                         }
                     }
-                
+
                     gsl_matrix_add(CDpos, tmpCDpos);
                     gsl_matrix_add(CDneg, tmpCDneg);
-                
+
                     error+=getReconstructionError(D->sample[z].feature, probvn);
 		    pl+=getPseudoLikelihood(m, m->v);
-                
+
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
-                    
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
 	    plsum = plsum + pl/ctr;
-        
+
             /* It updates RBM parameters */
             gsl_matrix_scale(CDpos, 1.0/batch_size); /* It averages CDpos */
             gsl_matrix_scale(CDneg, 1.0/batch_size); /* It averages CDneg */
@@ -4705,7 +4729,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
             gsl_matrix_add(tmpW, auxW); /* It performs W' = W-lambda*W' (weight decay) */
             gsl_matrix_add(tmpW, CDpos); /* It performs W' = W'+eta*(CDpos-CDneg) */
             gsl_matrix_add(m->W, tmpW); /* It performs W = W+W' */
-            
+
             gsl_vector_scale(v1, 1.0/batch_size); /* It averages v1 */
             gsl_vector_scale(vn, 1.0/batch_size); /* It averages vn */
             gsl_vector_sub(v1, vn); /* It performs v1-vn */
@@ -4713,7 +4737,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
             gsl_vector_scale(tmpa, m->alpha); /* It performs a'= alpha*a' */
             gsl_vector_add(tmpa, v1); /* It performs a' = alpha*a' + eta(v1-vn) */
             gsl_vector_add(m->a, tmpa); /* It performs a = a + a' */
-    
+
             gsl_vector_scale(ctr_probh1, 1.0/batch_size); /* It averages P(h1 = 1|v1) */
             gsl_vector_scale(ctr_probhn, 1.0/batch_size); /* It averages P(h2 = 1|v2) */
             gsl_vector_scale(tmpb, m->alpha); /* It performs b'= alpha*b' */
@@ -4723,19 +4747,19 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
             gsl_vector_add(m->b, tmpb); /* It performs b = b + b' */
             /********************************/
         }
-        
+
         error = errorsum/n_batches;
         pl = plsum/n_batches;
         fprintf(stderr,"    -> Reconstruction error: %lf with pseudo-likelihood of %lf", error, pl);
 	fprintf(stdout,"%d %lf %lf\n", e, error, pl);
-	
+
 	m->eta = m->eta_max-((m->eta_max-m->eta_min)/n_epochs)*e;
-        
+
         if(error < 0.0001) e = n_epochs+1;
     }
 
     gsl_rng_free(r);
-    
+
     gsl_vector_free(v1);
     gsl_vector_free(vn);
     gsl_vector_free(tmpa);
@@ -4743,7 +4767,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
     gsl_vector_free(ctr_probh1);
     gsl_vector_free(ctr_probhn);
     gsl_vector_free(aux);
-    
+
     gsl_matrix_free(CDpos);
     gsl_matrix_free(CDneg);
     gsl_matrix_free(tmpCDneg);
@@ -4751,7 +4775,7 @@ double Bernoulli_TrainingRBMbyPCD4DBM_IntermediateLayers(Dataset *D, RBM *m, int
     gsl_matrix_free(tmpW);
     gsl_matrix_free(auxW);
     gsl_matrix_free(last_probhn);
-        
+
     return error;
 }
 /**************************/
@@ -4859,9 +4883,9 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
             gsl_vector_set(std_rate, i, 0.0);
         }
     }
-    
+
     count = 0;
-    
+
     f = fopen("train_features.txt", "wt");
     fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
@@ -4999,7 +5023,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
 
                     error+=getReconstructionError(D->sample[z].feature, probvn);
                     pl+=getPseudoLikelihood(m, m->v);
-		    
+
 		    if (e == n_epochs){
 			fprintf(f, "%d %d", count, D->sample[z].label);
 			for (i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -5044,7 +5068,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
             }
             gsl_vector_add(pf2, tmp_sum4);
             gsl_vector_sub(pf, pf2);
-	    
+
             /* Updating sigma */
             for(j = 0; j < m->n_visible_layer_neurons; j++){
                tmp = (m->alpha * gsl_vector_get(invfstdInc, j)) + (gsl_vector_get(std_rate, e-1)/batch_size) * gsl_vector_get(pf, j);
@@ -5099,7 +5123,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
 
     fclose(f);
     gsl_rng_free(r);
-    
+
     gsl_vector_free(tmpVectorz);
     gsl_matrix_free(matrixData);
     gsl_matrix_free(tmpMatriz);
@@ -5237,9 +5261,9 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
             gsl_vector_set(std_rate, i, 0.0);
         }
     }
-    
+
     count = 0;
-    
+
     f = fopen("train_features.txt", "wt");
     fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
@@ -5268,7 +5292,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-		
+
                 if(z < D->size){
                     ctr++;
                     probh1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
@@ -5380,7 +5404,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
 
                     error+=getReconstructionError(D->sample[z].feature, probvn);
                     pl+=getPseudoLikelihood(m, m->v);
-		    
+
 		    if (e == n_epochs){
 			fprintf(f, "%d %d", count, D->sample[z].label);
 			for (i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -5425,7 +5449,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
             }
             gsl_vector_add(pf2, tmp_sum4);
             gsl_vector_sub(pf, pf2);
-	    
+
             /* Updating sigma */
             for(j = 0; j < m->n_visible_layer_neurons; j++){
                tmp = (m->alpha * gsl_vector_get(invfstdInc, j)) + (gsl_vector_get(std_rate, e-1)/batch_size) * gsl_vector_get(pf, j);
@@ -5480,7 +5504,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
 
     fclose(f);
     gsl_rng_free(r);
-    
+
     gsl_vector_free(tmpVectorz);
     gsl_matrix_free(matrixData);
     gsl_matrix_free(tmpMatriz);
@@ -5532,48 +5556,48 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
     double sample, error, errorsum, train_error;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     _negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     _posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     _negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     delta_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     delta_U = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     acc_v0 = gsl_vector_calloc(m->n_visible_layer_neurons);
     acc_v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     acc_h0 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_h1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_y0 = gsl_vector_calloc(m->n_labels);
     acc_y1 = gsl_vector_calloc(m->n_labels);
-    
+
     delta_a = gsl_vector_calloc(m->n_visible_layer_neurons);
     delta_b = gsl_vector_calloc(m->n_hidden_layer_neurons);
     delta_c = gsl_vector_calloc(m->n_labels);
 
     train_error = 0;
-    
+
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -5589,7 +5613,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_vector_set_zero(acc_y0);
             gsl_vector_set_zero(acc_y1);
 
-            
+
             for(t = 0; t < batch_size; t++){
                 if(z < D->size){
                     ctr++;
@@ -5597,7 +5621,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
                     gsl_vector_add(acc_v0, m->v);
                     y0 = label2binary_gsl_vector(D->sample[z].label, D->nlabels);
                     gsl_vector_add(acc_y0, y0);
-            
+
                     /* It computes the P(h0|v0,y0) */
                     ph0 = getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit(m, y0);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -5606,7 +5630,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h0, ph0);
-            
+
                     /* It computes the P(v1|h0) */
                     pv1 = getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit(m, m->h);
                     for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -5615,13 +5639,13 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
                         else gsl_vector_set(m->v, j, 0.0);
                     }
                     gsl_vector_add(acc_v1, m->v);
-            
+
                     /* It computes the P(y1|h0) */
                     py1 = getDiscriminativeProbabilityLabelUnit(m);
                     y1 = gsl_vector_calloc(py1->size);
                     gsl_vector_set(y1, gsl_vector_max_index(py1), 1.0); /* It samples the class with highest probability */
                     gsl_vector_add(acc_y1, y1);
-            
+
                     /* It computes the P(h1|y1,v1) */
                     ph1 = getDiscriminativeProbabilityTurningOnHiddenUnit(m, y1);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -5630,42 +5654,42 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h1, ph1);
-            
+
                     for(i = 0; i < _posW->size1; i++){
                         for(j = 0; j < _posW->size2; j++){
                             gsl_matrix_set(_posW, i, j, gsl_vector_get(ph0, j)*(gsl_vector_get(D->sample[z].feature, i)/gsl_vector_get(m->sigma, i)));
                             gsl_matrix_set(_negW, i, j, gsl_vector_get(ph1, j)*(gsl_vector_get(m->v, i)/gsl_vector_get(m->sigma, i)));
                         }
                     }
-            
+
                     for(i = 0; i < _posU->size1; i++){
                         for(j = 0; j < _posU->size2; j++){
                             gsl_matrix_set(_posU, i, j, gsl_vector_get(ph0, j)*gsl_vector_get(y0, i));
                             gsl_matrix_set(_negU, i, j, gsl_vector_get(ph1, j)*gsl_vector_get(y1, i));
                         }
                     }
-            
+
                     gsl_matrix_add(posW, _posW);
                     gsl_matrix_add(negW, _negW);
-            
+
                     gsl_matrix_add(posU, _posU);
                     gsl_matrix_add(negU, _negU);
-            
+
                     error+=getReconstructionError(y0, py1);
-            
+
                     gsl_vector_free(y0);
                     gsl_vector_free(y1);
                     gsl_vector_free(py1);
                     gsl_vector_free(ph0);
                     gsl_vector_free(ph1);
                     gsl_vector_free(pv1);
-                
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
-        
+
             /* Updating W parameter */
             gsl_matrix_sub(posW, negW); /* posW = posW-negW */
             gsl_matrix_scale(posW, 1.0/ctr);
@@ -5676,7 +5700,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_matrix_scale(delta_W, m->alpha); /* delta_W = alpha*delta_W */
             gsl_matrix_add(delta_W, posW); /* delta_W = eta*(posW-negW) - lambda*W * alpha*delta_W */
             gsl_matrix_add(m->W, delta_W); /* W = W + delta_W */
-        
+
             /* Updating U parameter */
             gsl_matrix_sub(posU, negU); /* posU = posU-negU */
             gsl_matrix_scale(posU, 1.0/ctr);
@@ -5687,7 +5711,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_matrix_scale(delta_U, m->alpha); /* delta_U = alpha*delta_U */
             gsl_matrix_add(delta_U, posU); /* delta_U = eta*(posU-negU) -lambda*U + alpha*delta_U */
             gsl_matrix_add(m->U, delta_U); /* U = U + delta_U */
-        
+
             /* Updating a parameter */
             gsl_vector_div(acc_v0, m->sigma); /* v0 = v0/sigma */
             gsl_vector_div(acc_v1, m->sigma); /* v1 = v1/sigma */
@@ -5697,7 +5721,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_vector_scale(delta_a, m->alpha); /* delta_a = alpha*delta_a */
             gsl_vector_add(delta_a, acc_v0); /* delta_a = eta*(v0-v1) + alpha*delta_a */
             gsl_vector_add(m->a, delta_a); /* a = a + delta_a */
-        
+
             /* Updating b parameter */
             gsl_vector_sub(acc_h0, acc_h1); /* h0 = h0 - h1 */
             gsl_vector_scale(acc_h0, 1.0/ctr);
@@ -5705,7 +5729,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_vector_scale(delta_b, m->alpha); /* delta_b = alpha*delta_b */
             gsl_vector_add(delta_b, acc_h0); /* delta_b = eta*(h0 - h1) + alpha*delta_b */
             gsl_vector_add(m->b, delta_b); /* b = b + delta_b */
-        
+
             /* Updating c parameter */
             gsl_vector_sub(acc_y0, acc_y1); /* y0 = y0 - y1 */
             gsl_vector_scale(acc_y0, 1.0/ctr);
@@ -5714,11 +5738,11 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
             gsl_vector_add(delta_c, acc_y0); /* delta_c = eta*(y0 - y1) + alpha*delta_c */
             gsl_vector_add(m->c, delta_c); /* c = c + delta_c */
         }
-        
+
         train_error = errorsum/n_batches;
-        fprintf(stderr,"MSE classification error: %lf OK", train_error);        
+        fprintf(stderr,"MSE classification error: %lf OK", train_error);
     }
-    
+
     gsl_rng_free(r);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(tmpU);
@@ -5741,7 +5765,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset
     gsl_vector_free(delta_a);
     gsl_vector_free(delta_b);
     gsl_vector_free(delta_c);
-    
+
     return train_error;
 }
 
@@ -5762,50 +5786,50 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
     double sample, error, errorsum, train_error;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     _posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     posW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     _negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     negW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
-    
+
     _posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     posU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     _negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
     negU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     tmpW = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     tmpU = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     delta_W = gsl_matrix_calloc(m->n_visible_layer_neurons, m->n_hidden_layer_neurons);
     delta_U = gsl_matrix_calloc(m->n_labels, m->n_hidden_layer_neurons);
-    
+
     acc_v0 = gsl_vector_calloc(m->n_visible_layer_neurons);
     acc_v1 = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     acc_h0 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_h1 = gsl_vector_calloc(m->n_hidden_layer_neurons);
     acc_y0 = gsl_vector_calloc(m->n_labels);
     acc_y1 = gsl_vector_calloc(m->n_labels);
-    
+
     delta_a = gsl_vector_calloc(m->n_visible_layer_neurons);
     delta_b = gsl_vector_calloc(m->n_hidden_layer_neurons);
     delta_c = gsl_vector_calloc(m->n_labels);
 
     train_error = 0;
-    
 
-    
+
+
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
-        
+
         errorsum = 0;
         z = 0;
-        
+
         /* For each batch */
         for(n = 1; n <= n_batches; n++){
             ctr = 0;
@@ -5821,18 +5845,18 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
             gsl_vector_set_zero(acc_y0);
             gsl_vector_set_zero(acc_y1);
 
-            
+
             for(t = 0; t < batch_size; t++){
 		/* It computes r for dropping out hidden units */
 		InitializeBias4DropoutHiddenUnits(m, p);
-		
+
                 if(z < D->size){
                     ctr++;
                     setVisibleLayer(m, D->sample[z].feature);
                     gsl_vector_add(acc_v0, m->v);
                     y0 = label2binary_gsl_vector(D->sample[z].label, D->nlabels);
                     gsl_vector_add(acc_y0, y0);
-            
+
                     /* It computes the P(h0|v0,y0) */
                     ph0 = getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit4Dropout(m, m->r, y0);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -5841,7 +5865,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h0, ph0);
-            
+
                     /* It computes the P(v1|h0) */
                     pv1 = getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit4Dropout(m, m->r, m->h);
                     for(j = 0; j < m->n_visible_layer_neurons; j++){
@@ -5850,13 +5874,13 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
                         else gsl_vector_set(m->v, j, 0.0);
                     }
                     gsl_vector_add(acc_v1, m->v);
-            
+
                     /* It computes the P(y1|h0) */
                     py1 = getDiscriminativeProbabilityLabelUnit(m);
                     y1 = gsl_vector_calloc(py1->size);
                     gsl_vector_set(y1, gsl_vector_max_index(py1), 1.0); /* It samples the class with highest probability */
                     gsl_vector_add(acc_y1, y1);
-            
+
                     /* It computes the P(h1|y1,v1) */
                     ph1 = getDiscriminativeProbabilityTurningOnHiddenUnit4Dropout(m, m->r, y1);
                     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -5865,42 +5889,42 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
                         else gsl_vector_set(m->h, j, 0.0);
                     }
                     gsl_vector_add(acc_h1, ph1);
-            
+
                     for(i = 0; i < _posW->size1; i++){
                         for(j = 0; j < _posW->size2; j++){
                             gsl_matrix_set(_posW, i, j, gsl_vector_get(ph0, j)*(gsl_vector_get(D->sample[z].feature, i)/gsl_vector_get(m->sigma, i)));
                             gsl_matrix_set(_negW, i, j, gsl_vector_get(ph1, j)*(gsl_vector_get(m->v, i)/gsl_vector_get(m->sigma, i)));
                         }
                     }
-            
+
                     for(i = 0; i < _posU->size1; i++){
                         for(j = 0; j < _posU->size2; j++){
                             gsl_matrix_set(_posU, i, j, gsl_vector_get(ph0, j)*gsl_vector_get(y0, i));
                             gsl_matrix_set(_negU, i, j, gsl_vector_get(ph1, j)*gsl_vector_get(y1, i));
                         }
                     }
-            
+
                     gsl_matrix_add(posW, _posW);
                     gsl_matrix_add(negW, _negW);
-            
+
                     gsl_matrix_add(posU, _posU);
                     gsl_matrix_add(negU, _negU);
-            
+
                     error+=getReconstructionError(y0, py1);
-		                
+
                     gsl_vector_free(y0);
                     gsl_vector_free(y1);
                     gsl_vector_free(py1);
                     gsl_vector_free(ph0);
                     gsl_vector_free(ph1);
                     gsl_vector_free(pv1);
-                
+
                     z++;
                 }
             }
-        
+
             errorsum = errorsum + error/ctr;
-        
+
             /* Updating W parameter */
             gsl_matrix_sub(posW, negW); /* posW = posW-negW */
             gsl_matrix_scale(posW, 1.0/ctr);
@@ -5911,7 +5935,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
             gsl_matrix_scale(delta_W, m->alpha); /* delta_W = alpha*delta_W */
             gsl_matrix_add(delta_W, posW); /* delta_W = eta*(posW-negW) - lambda*W * alpha*delta_W */
             gsl_matrix_add(m->W, delta_W); /* W = W + delta_W */
-        
+
             /* Updating U parameter */
             gsl_matrix_sub(posU, negU); /* posU = posU-negU */
             gsl_matrix_scale(posU, 1.0/ctr);
@@ -5922,7 +5946,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
             gsl_matrix_scale(delta_U, m->alpha); /* delta_U = alpha*delta_U */
             gsl_matrix_add(delta_U, posU); /* delta_U = eta*(posU-negU) -lambda*U + alpha*delta_U */
             gsl_matrix_add(m->U, delta_U); /* U = U + delta_U */
-        
+
             /* Updating a parameter */
             gsl_vector_div(acc_v0, m->sigma); /* v0 = v0/sigma */
             gsl_vector_div(acc_v1, m->sigma); /* v1 = v1/sigma */
@@ -5932,7 +5956,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
             gsl_vector_scale(delta_a, m->alpha); /* delta_a = alpha*delta_a */
             gsl_vector_add(delta_a, acc_v0); /* delta_a = eta*(v0-v1) + alpha*delta_a */
             gsl_vector_add(m->a, delta_a); /* a = a + delta_a */
-        
+
             /* Updating b parameter */
             gsl_vector_sub(acc_h0, acc_h1); /* h0 = h0 - h1 */
             gsl_vector_scale(acc_h0, 1.0/ctr);
@@ -5940,7 +5964,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
             gsl_vector_scale(delta_b, m->alpha); /* delta_b = alpha*delta_b */
             gsl_vector_add(delta_b, acc_h0); /* delta_b = eta*(h0 - h1) + alpha*delta_b */
             gsl_vector_add(m->b, delta_b); /* b = b + delta_b */
-        
+
             /* Updating c parameter */
             gsl_vector_sub(acc_y0, acc_y1); /* y0 = y0 - y1 */
             gsl_vector_scale(acc_y0, 1.0/ctr);
@@ -5949,11 +5973,11 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
             gsl_vector_add(delta_c, acc_y0); /* delta_c = eta*(y0 - y1) + alpha*delta_c */
             gsl_vector_add(m->c, delta_c); /* c = c + delta_c */
         }
-        
+
         train_error = errorsum/n_batches;
-        fprintf(stderr,"MSE classification error: %lf OK", train_error);        
+        fprintf(stderr,"MSE classification error: %lf OK", train_error);
     }
-    
+
     gsl_rng_free(r);
     gsl_matrix_free(tmpW);
     gsl_matrix_free(tmpU);
@@ -5976,7 +6000,7 @@ double DiscriminativeGaussianBernoulliRBMTrainingbyContrastiveDivergencewithDrop
     gsl_vector_free(delta_a);
     gsl_vector_free(delta_b);
     gsl_vector_free(delta_c);
-    
+
     return train_error;
 }
 /**************************/
@@ -5991,7 +6015,7 @@ double BernoulliRBMReconstruction(Dataset *D, RBM *m){
     double error = 0.0;
     int i;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
-    
+
     for(i = 0; i < D->size; i++){
         h_prime = getProbabilityTurningOnHiddenUnit(m, D->sample[i].feature);
         v_prime = getProbabilityTurningOnVisibleUnit(m, h_prime);
@@ -6000,7 +6024,7 @@ double BernoulliRBMReconstruction(Dataset *D, RBM *m){
         gsl_vector_free(v_prime);
     }
     error/=D->size;
-    
+
     return error;
 }
 
@@ -6014,7 +6038,7 @@ double GaussianBernoulliRBMReconstruction(Dataset *D, RBM *m){
     int i, j;
     gsl_vector *h_prime = NULL, *v_prime = NULL;
     FILE *f;
-        
+
     f = fopen("test_features.txt", "wt");
     fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
 
@@ -6022,12 +6046,12 @@ double GaussianBernoulliRBMReconstruction(Dataset *D, RBM *m){
         h_prime = getProbabilityTurningOnHiddenUnit4Gaussian(m, D->sample[i].feature, m->sigma);
         v_prime = getProbabilityTurningOnVisibleUnit4Gaussian(m, h_prime, m->sigma);
         error+=getReconstructionError(D->sample[i].feature, v_prime);
-	
+
 	fprintf(f, "%d %d", i, D->sample[i].label);
 	for (j = 0; j < m->n_hidden_layer_neurons; j++)
 	    fprintf(f, " %lf", gsl_vector_get(h_prime, j));
 	fprintf(f, "\n");
-	
+
         gsl_vector_free(h_prime);
         gsl_vector_free(v_prime);
     }
@@ -6041,12 +6065,12 @@ Parameters: [D, m]
 D: dataset
 m: RBM */
 void _DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
-    int i, y, label;	
+    int i, y, label;
     double proby_x, den, maxprob, maxproby_x;
     gsl_vector *prob = NULL;
-    
+
     prob = gsl_vector_alloc(D->nlabels);
-    
+
     for(i = 0; i < D->size; i++){
         maxprob = -99999999999;
         label = 0;
@@ -6063,7 +6087,7 @@ void _DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
             }
         }
         D->sample[i].predict = label;
-    }             
+    }
     gsl_vector_free(prob);
 }
 
@@ -6076,7 +6100,7 @@ double DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
     int i, y;
     double maxprob, prob, Acc;
     Subgraph *g = NULL;
-    
+
     for(i = 0; i < D->size; i++){
         maxprob = -99999999999;
         for(y = 0; y < D->nlabels; y++){
@@ -6090,7 +6114,7 @@ double DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
     g = Dataset2Subgraph(D);
     Acc = opf_Accuracy(g);
     DestroySubgraph(&g);
-    
+
     return 1-Acc;
 }
 /**************************/
@@ -6105,7 +6129,7 @@ The free energy is computed based on http://deeplearning.net/tutorial/rbm.html (
 double FreeEnergy(RBM *m, gsl_vector *v){
     int i, j;
     double wv_b, sum = 0, b_v = 0;
-    
+
     for(i = 0; i < m->n_visible_layer_neurons; i++)
 	b_v+=(gsl_vector_get(m->a, i)*gsl_vector_get(v, i)); /* It computes a*v */
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
@@ -6116,7 +6140,7 @@ double FreeEnergy(RBM *m, gsl_vector *v){
 	wv_b = 1+exp(wv_b); /* It computes 1+exp(wv_b) */
 	sum+=log(wv_b); /* It computes the summation over log (1+exp(wv_b)); */
     }
-    
+
     return -b_v-sum;
 }
 
@@ -6128,7 +6152,7 @@ y: label of unit
 double FreeEnergy4DRBM(RBM *m, int y, gsl_vector *x){
     double F = 0.0, tmp = 0.0, aux;
     int j, i;
-    
+
     F = gsl_vector_get(m->c, y);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         aux = 0.0;
@@ -6139,7 +6163,7 @@ double FreeEnergy4DRBM(RBM *m, int y, gsl_vector *x){
         tmp+=SoftPlus(aux);
     }
     F+=tmp; /* It computes c+\sum_j softplus(Wx+U+b) */
-    
+
     return F;
 }
 
@@ -6150,7 +6174,7 @@ output: output vector */
 double getReconstructionError(gsl_vector *input, gsl_vector *output){
     int i;
     double error = 0.0;
-    
+
     for(i = 0; i < input->size; i++)
 	error+=pow(gsl_vector_get(input,i)-gsl_vector_get(output,i), 2);
     return error/input->size;
@@ -6164,7 +6188,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6175,7 +6199,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v){
 	tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6188,9 +6212,9 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
-    
+
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_visible_layer_neurons; i++)
@@ -6199,7 +6223,7 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit(RBM *m, gsl
 	tmp = SigmoidLogistic(tmp)*gsl_vector_get(r, j);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6212,7 +6236,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4Dropconnect(RBM *m, gsl_matrix *M,
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6223,7 +6247,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4Dropconnect(RBM *m, gsl_matrix *M,
 	tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6235,7 +6259,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4DBM(RBM *m, gsl_vector *v){
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6246,7 +6270,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4DBM(RBM *m, gsl_vector *v){
 	tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6259,7 +6283,7 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4DBM(RBM *m,
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6270,7 +6294,7 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4DBM(RBM *m,
 	tmp = SigmoidLogistic(tmp) * gsl_vector_get(r, j);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6282,7 +6306,7 @@ prob_h: probability of hidden neurons */
 void FASTgetProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *v, gsl_vector *prob_h){
     int i, j;
     double tmp;
-    
+
     if(prob_h){
 	for(j = 0; j < m->n_hidden_layer_neurons; j++){
 	    tmp = 0.0;
@@ -6305,7 +6329,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD(RBM *m, gsl_vector *v, gsl_ma
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6315,7 +6339,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD(RBM *m, gsl_vector *v, gsl_ma
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6329,7 +6353,7 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4FPCD(RBM *m
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6339,7 +6363,7 @@ gsl_vector *getProbabilityDroppingVisibleUnitOut4TurningOnHiddenUnit4FPCD(RBM *m
         tmp = SigmoidLogistic(tmp)*gsl_vector_get(m->r, j);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6353,7 +6377,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD4Dropconnect(RBM *m, gsl_matri
     int i, j;
     gsl_vector *h = NULL;
     double tmp;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = 0.0;
@@ -6363,7 +6387,7 @@ gsl_vector *getProbabilityTurningOnHiddenUnit4FPCD4Dropconnect(RBM *m, gsl_matri
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6375,9 +6399,9 @@ gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h){
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6386,7 +6410,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit(RBM *m, gsl_vector *h){
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6399,9 +6423,9 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6410,7 +6434,7 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit(RBM *m, gsl
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6423,9 +6447,9 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4Dropconnect(RBM *m, gsl_matrix *M
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6434,7 +6458,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4Dropconnect(RBM *m, gsl_matrix *M
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6446,9 +6470,9 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4DBM(RBM *m, gsl_vector *h){
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6457,7 +6481,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4DBM(RBM *m, gsl_vector *h){
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6470,9 +6494,9 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4DBM(RBM *m,
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6481,7 +6505,7 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4DBM(RBM *m,
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6494,9 +6518,9 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_m
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6505,7 +6529,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD(RBM *m, gsl_vector *h, gsl_m
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6519,9 +6543,9 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4FPCD(RBM *m
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6530,7 +6554,7 @@ gsl_vector *getProbabilityDroppingHiddenUnitOut4TurningOnVisibleUnit4FPCD(RBM *m
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6544,9 +6568,9 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD4Dropconnect(RBM *m, gsl_matr
     int i,j;
     gsl_vector *v = NULL;
     double tmp;
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(j = 0; j < m->n_visible_layer_neurons; j++){
         tmp = 0.0;
         for(i = 0; i < m->n_hidden_layer_neurons; i++)
@@ -6555,7 +6579,7 @@ gsl_vector *getProbabilityTurningOnVisibleUnit4FPCD4Dropconnect(RBM *m, gsl_matr
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(v, j, tmp);
     }
-    
+
     return v;
 }
 
@@ -6657,25 +6681,25 @@ gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit(RBM *m, gsl_vector *
     int i, j;
     gsl_vector *h = NULL;
     double tmp, aux;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = aux = 0.0;
         for(i = 0; i < m->n_visible_layer_neurons; i++) /* It computes w_{ij}*v_i */
             tmp+=(gsl_vector_get(m->v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j); /* It computes (w_{ij}*v_i)+b_j */
-        
+
         /* It computes y*U_j */
         for(i = 0; i < m->n_labels; i++)
             aux+=(gsl_matrix_get(m->U, i, j)*gsl_vector_get(y, i));
-        
+
         /* It computes (w_{ij}*v_i)+b_j+(y*U_j) */
         tmp+=aux;
-        
+
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6688,25 +6712,25 @@ gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4Dropout(RBM *m, gsl_
     int i, j;
     gsl_vector *h = NULL;
     double tmp, aux;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = aux = 0.0;
         for(i = 0; i < m->n_visible_layer_neurons; i++) /* It computes w_{ij}*v_i */
             tmp+=(gsl_vector_get(m->v, i)*gsl_matrix_get(m->W, i, j));
         tmp+=gsl_vector_get(m->b, j); /* It computes (w_{ij}*v_i)+b_j */
-        
+
         /* It computes y*U_j */
         for(i = 0; i < m->n_labels; i++)
             aux+=(gsl_matrix_get(m->U, i, j)*gsl_vector_get(y, i));
-        
+
         /* It computes (w_{ij}*v_i)+b_j+(y*U_j) */
         tmp+=aux;
-        
+
         tmp = SigmoidLogistic(tmp)*gsl_vector_get(r, j);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6718,25 +6742,25 @@ gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit(
     int i, j;
     gsl_vector *h = NULL;
     double tmp, aux;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = aux = 0.0;
         for(i = 0; i < m->n_visible_layer_neurons; i++) /* It computes w_{ij}*v_i/sigma_i */
             tmp+=((gsl_vector_get(m->v, i)*gsl_matrix_get(m->W, i, j))/gsl_vector_get(m->sigma, i));
         tmp+=gsl_vector_get(m->b, j); /* It computes (w_{ij}*v_i)+b_j */
-	
+
         /* It computes y*U_j */
         for(i = 0; i < m->n_labels; i++)
             aux+=(gsl_matrix_get(m->U, i, j)*gsl_vector_get(y, i));
-        
+
         /* It computes (w_{ij}*v_i)+b_j+(y*U_j) */
         tmp+=aux;
-        
+
         tmp = SigmoidLogistic(tmp);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6749,25 +6773,25 @@ gsl_vector *getDiscriminativeProbabilityTurningOnHiddenUnit4GaussianVisibleUnit4
     int i, j;
     gsl_vector *h = NULL;
     double tmp, aux;
-    
+
     h = gsl_vector_calloc(m->n_hidden_layer_neurons);
     for(j = 0; j < m->n_hidden_layer_neurons; j++){
         tmp = aux = 0.0;
         for(i = 0; i < m->n_visible_layer_neurons; i++) /* It computes w_{ij}*v_i/sigma_i */
             tmp+=((gsl_vector_get(m->v, i)*gsl_matrix_get(m->W, i, j))/gsl_vector_get(m->sigma, i));
         tmp+=gsl_vector_get(m->b, j); /* It computes (w_{ij}*v_i)+b_j */
-	
+
         /* It computes y*U_j */
         for(i = 0; i < m->n_labels; i++)
             aux+=(gsl_matrix_get(m->U, i, j)*gsl_vector_get(y, i));
-        
+
         /* It computes (w_{ij}*v_i)+b_j+(y*U_j) */
         tmp+=aux;
-        
+
         tmp = SigmoidLogistic(tmp)*gsl_vector_get(r, j);
         gsl_vector_set(h, j, tmp);
     }
-    
+
     return h;
 }
 
@@ -6781,14 +6805,14 @@ gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit
     double tmp;
     const gsl_rng_type *T = NULL;
     gsl_rng *r = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(i = 0; i < m->n_visible_layer_neurons; i++){
         tmp = 0.0;
         for(j = 0; j < m->n_hidden_layer_neurons; j++)
@@ -6798,7 +6822,7 @@ gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit
         gsl_vector_set(v, i, tmp);
     }
     gsl_rng_free(r);
-    
+
     return v;
 }
 
@@ -6813,14 +6837,14 @@ gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit
     double tmp;
     const gsl_rng_type *T = NULL;
     gsl_rng *s = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     s = gsl_rng_alloc(T);
     gsl_rng_set(s, random_seed_deep());
-    
+
     v = gsl_vector_calloc(m->n_visible_layer_neurons);
-    
+
     for(i = 0; i < m->n_visible_layer_neurons; i++){
         tmp = 0.0;
         for(j = 0; j < m->n_hidden_layer_neurons; j++)
@@ -6830,7 +6854,7 @@ gsl_vector *getDiscriminativeProbabilityTurningOnVisibleUnit4GaussianVisibleUnit
         gsl_vector_set(v, i, tmp);
     }
     gsl_rng_free(s);
-    
+
     return v;
 }
 
@@ -6841,10 +6865,10 @@ gsl_vector *getDiscriminativeProbabilityLabelUnit(RBM *m){
     int j, k;
     double den = 0.0, tmp;
     gsl_vector *y = NULL;
-    
+
     y = gsl_vector_calloc(m->n_labels);
     gsl_vector_set_zero(y);
-    
+
     /* It computes \sum y* {\sum U_yj*h_j} + c_y */
     for(k = 0; k < m->n_labels; k++){
         tmp = 0.0;
@@ -6855,7 +6879,7 @@ gsl_vector *getDiscriminativeProbabilityLabelUnit(RBM *m){
         den+=gsl_vector_get(y, k);
     }
     gsl_vector_scale(y, 1/den);
-    
+
     return y;
 }
 
@@ -6870,22 +6894,22 @@ double getPseudoLikelihood(RBM *m, gsl_vector *x){
     int index;
     gsl_rng *r = NULL;
     gsl_vector *x_flipped = NULL;
-    
+
     srand(time(NULL));
     T = gsl_rng_default;
     r = gsl_rng_alloc(T);
     gsl_rng_set(r, random_seed_deep());
-    
+
     x_flipped = gsl_vector_alloc(x->size);
     gsl_vector_memcpy(x_flipped, x);
-    
+
     index = gsl_rng_uniform_int(r, (long int)m->n_visible_layer_neurons); /* It generates the index of the bit to be flipped */
     gsl_vector_set(x_flipped, index, 1-gsl_vector_get(x_flipped, index)); /* It flips the bit at index position */
     pl = m->n_visible_layer_neurons*log(SigmoidLogistic(FreeEnergy(m, x_flipped)-FreeEnergy(m, x)));
-    
+
     gsl_rng_free(r);
     gsl_vector_free(x_flipped);
-    
+
     return pl;
 }
 /**************************/
