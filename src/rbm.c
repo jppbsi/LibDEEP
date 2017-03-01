@@ -6660,15 +6660,13 @@ D: dataset
 m: RBM */
 void _DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
     int i, y, label;
-    double proby_x, den, maxprob, maxproby_x;
+    double proby_x, maxproby_x;
     gsl_vector *prob = NULL;
 
     prob = gsl_vector_alloc(D->nlabels);
 
     for(i = 0; i < D->size; i++){
-        maxprob = -99999999999;
         label = 0;
-        den = 0.0;
         for(y = 0; y < D->nlabels; y++){
             gsl_vector_set(prob, y, FreeEnergy4DRBM(m, y, D->sample[i].feature));
         }
@@ -6676,7 +6674,7 @@ void _DiscriminativeBernoulliRBMClassification(Dataset *D, RBM *m){
         for(y = 0; y < D->nlabels; y++){
             proby_x = gsl_vector_get(prob,y);
             if(proby_x > maxproby_x){
-		maxproby_x = proby_x;
+		        maxproby_x = proby_x;
                 label = y+1;
             }
         }
