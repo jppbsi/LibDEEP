@@ -5503,6 +5503,8 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergence(Dataset *D, RBM *m, i
         }
     }
 
+    error = 0;
+
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
         fprintf(stderr,"\nRunning epoch %d ... ", e);
@@ -5772,7 +5774,7 @@ n_CD_iterations: number of CD iterations
 batch_size: size of batch data
 p: hidden neurons dropout rate */
 double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D, RBM *m, int n_epochs, int n_CD_iterations, int batch_size, double p){
-    int count, i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
+    int i, j, z, n, t, e, n_batches = ceil((float)D->size/batch_size), ctr, w, line;
     double error, sample, errorsum, pl, plsum, v_std_rate;
     const gsl_rng_type * T;
     gsl_matrix *CDpos = NULL, *CDneg = NULL, *tmpCDpos = NULL, *tmpCDneg = NULL, *tmpW = NULL, *auxW = NULL, *tmpWxP = NULL, *matrix_data_W_probh1 = NULL, *matrix_probvn_W_probhn = NULL, *matrix_tmp_probh1;
@@ -5780,7 +5782,6 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
     gsl_vector *probh1 = NULL, *probhn = NULL, *probvn = NULL, *ctr_probh1 = NULL, *ctr_probhn = NULL, *tmp_probh1 = NULL, *tmp_probhn = NULL;
     gsl_vector *tmp_probvn = NULL, *tmp_sum2 = NULL, *tmp_sum4 = NULL;
     gsl_rng *r;
-    FILE *f;
 
     /* Gaussian */
     gsl_vector *p1 = NULL, *pf = NULL, *pf2 = NULL, *p2 = NULL, *invfstdInc = NULL, *std_rate = NULL, *invfstd = NULL;
@@ -5866,10 +5867,7 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
         }
     }
 
-    count = 0;
-
-    f = fopen("train_features.txt", "wt");
-    fprintf(f, "%d %d %d\n", D->size, D->nlabels, m->n_hidden_layer_neurons);
+    error = 0;
 
     /* For each epoch */
     for(e = 1; e <= n_epochs; e++){
@@ -6009,14 +6007,6 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
                     error+=getReconstructionError(D->sample[z].feature, probvn);
                     pl+=getPseudoLikelihood(m, m->v);
 
-		    if (e == n_epochs){
-			fprintf(f, "%d %d", count, D->sample[z].label);
-			for (i = 0; i < m->n_hidden_layer_neurons; i++)
-			    fprintf(f, " %lf", gsl_vector_get(probhn, i));
-			fprintf(f, "\n");
-			count++;
-		    }
-
                     gsl_vector_free(probh1);
                     gsl_vector_free(probhn);
                     gsl_vector_free(probvn);
@@ -6105,8 +6095,6 @@ double GaussianBernoulliRBMTrainingbyContrastiveDivergencewithDropout(Dataset *D
 	    e = n_epochs+1;
     }
 
-
-    fclose(f);
     gsl_rng_free(r);
 
     gsl_vector_free(tmpVectorz);
