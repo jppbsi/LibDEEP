@@ -118,8 +118,8 @@ fp: file */
 void WaiveLibDEEPComment(FILE *fp){
     char c;
 
-    (void)fscanf(fp, "%c", &c);
-    while((c != '\n') && (!feof(fp))) (void)fscanf(fp, "%c", &c);
+    fscanf(fp, "%c", &c);
+    while((c != '\n') && (!feof(fp))) fscanf(fp, "%c", &c);
 }
 
 /* It converts a Dataset to a Subgraph
