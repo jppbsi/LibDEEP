@@ -13,38 +13,38 @@ Subgraph *PCA(Subgraph *in, double p){
         fprintf(stderr,"\nNo input graph defined @PCA.\n");
         return NULL;
     }
-    
+
     if(p > 1 || p <= 0){
         fprintf(stderr,"\nWrong percentage range @PCA\n");
         return NULL;
     }
-    
+
     Subgraph *out = NULL, *tmp = NULL;
-    int k = ceil(p*in->nfeats), result, i, j;
+    int k = ceil(p*in->nfeats), i, j;
     gsl_matrix *cov = NULL, *tcov = NULL, *M = NULL, *X = gsl_matrix_alloc(in->nfeats, in->nfeats);
     gsl_matrix *V = gsl_matrix_alloc(in->nfeats, in->nfeats), *tmp_cov = NULL, *aux = NULL, *r = NULL;
     gsl_vector *work = gsl_vector_alloc(in->nfeats), *S = gsl_vector_alloc(in->nfeats), *v = NULL;
-    
+
     if (k < 1) k = 1;
     tmp = CopySubgraph(in);
     opf_NormalizeFeatures(tmp);
     M = Subgraph2gsl_matrix(tmp);
     cov = CovarianceMatrix(M);
-    
+
     /* It performs SVD */
-    result = gsl_linalg_SV_decomp_mod(cov, X, V, S, work);
-    
+    //result = gsl_linalg_SV_decomp_mod(cov, X, V, S, work);
+
     /* Picking the first k eigeinvectors */
     tmp_cov = gsl_matrix_alloc(cov->size1, k);
     for(i = 0; i < tmp_cov->size1; i++)
         for(j = 0; j < tmp_cov->size2; j++)
             gsl_matrix_set(tmp_cov, i, j, gsl_matrix_get(cov, i, j));
-    
+
     tcov = gsl_matrix_calloc(tmp_cov->size2, tmp_cov->size1);
     gsl_matrix_transpose_memcpy(tcov, tmp_cov);
     aux = gsl_matrix_calloc(in->nfeats, 1);
     r = gsl_matrix_calloc(k, 1);
-    
+
     out = CreateSubgraph(in->nnodes);
     out->nfeats = k;
     out->nlabels = in->nlabels;
@@ -59,7 +59,7 @@ Subgraph *PCA(Subgraph *in, double p){
             out->node[i].feat[j] = (float)gsl_matrix_get(r, j, 0);
         gsl_vector_free(v);
     }
-        
+
     gsl_matrix_free(cov);
     gsl_matrix_free(tcov);
     gsl_matrix_free(tmp_cov);
@@ -71,6 +71,6 @@ Subgraph *PCA(Subgraph *in, double p){
     gsl_vector_free(work);
     gsl_vector_free(S);
     DestroySubgraph(&tmp);
-    
+
     return out;
 }
