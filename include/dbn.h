@@ -45,4 +45,6 @@ Subgraph *DBN2Subgraph(DBN *d, Dataset *D); /* It generates a subgraph using the
 void saveDBNParameters(DBN *d, char *file); /* It saves DBN weight matrixes and bias vectors */
 void loadDBNParametersFromFile(DBN *d, char *file); /* It loads DBN weight matrixes and bias vectors from file */
 
+void extractDBNUpperLayerFeatures(Dataset *D, DBN *d, char *fileName);/* It generates a file in OPF format with DBN's upper hidden layer units values as features */
+
 #endif

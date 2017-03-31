@@ -31,4 +31,6 @@ gsl_vector *getProbabilityTurningOnDBMIntermediateLayersOnDownPass(RBM *m, gsl_v
 void saveDBMParameters(DBM *d, char *file); /* It saves DBM weight matrixes and bias vectors */
 void loadDBMParametersFromFile(DBM *d, char *file); /* It loads DBM weight matrixes and bias vectors from file */
 
+void extractDBMUpperLayerFeatures(Dataset *D, DBM *d, char *fileName); /* It generates a file in OPF format with DBM's upper hidden layer units values as features */
+
 #endif

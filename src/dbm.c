@@ -476,3 +476,45 @@ void loadDBMParametersFromFile(DBM *d, char *file){
     }
     fclose(fpin);
 }
+
+/* It generates a file in OPF format with DBM's upper hidden layer units values as features 
+Parameters: [D, d, fileName]
+D: dataset
+d: DBM
+fileName: file name */
+void extractDBMUpperLayerFeatures(Dataset *D, DBM *d, char *fileName){
+    double sample, error = 0.0;
+    int l, i, j;
+	const gsl_rng_type * T;	
+    FILE *fp = NULL;
+	gsl_rng *r;
+	T = gsl_rng_default;
+	r = gsl_rng_alloc(T);
+	fp = fopen(fileName, "w");
+	fprintf(fp,"%d %d %d",D->size, D->nlabels, d->m[d->n_layers-1]->n_hidden_layer_neurons);
+    for(i = 0; i < D->size; i++){        
+		gsl_vector_free(d->m[0]->v);
+		d->m[0]->v = gsl_vector_alloc(d->m[0]->n_visible_layer_neurons);
+		gsl_vector_memcpy(d->m[0]->v, D->sample[i].feature);
+
+        for(l = 0; l < d->n_layers; l++){	
+			gsl_vector_free(d->m[l]->h);
+			d->m[l]->h = getProbabilityTurningOnHiddenUnit(d->m[l], d->m[l]->v);
+                     
+            if(l < d->n_layers-1){
+				gsl_vector_free(d->m[l+1]->v);
+				d->m[l+1]->v = gsl_vector_alloc(d->m[l+1]->n_visible_layer_neurons);
+				gsl_vector_memcpy(d->m[l+1]->v,d->m[l]->h);
+			}else{		
+				fprintf(fp,"\n%d %d",i, (&D->sample[i])->label);
+				for(j = 0; j < d->m[l]->n_hidden_layer_neurons; j++){
+                    sample = gsl_rng_uniform(r);
+                    if(gsl_vector_get(d->m[l]->h, j )>= sample) fprintf(fp," %f", 1.0);
+                    else fprintf(fp," %f", 0.0);
+				}
+            }      
+        }
+	}
+	fclose(fp);
+}
+
