@@ -1,9 +1,11 @@
 #include "deep.h"
 
-int main(int argc, char **argv){
+int main(int argc, char **argv)
+{
 
-    if(argc != 10){
-        fprintf(stderr,"\nusage RBM <training set> <test set> <output results file name> <cross-validation iteration number> \
+    if (argc != 10)
+    {
+        fprintf(stderr, "\nusage RBM <training set> <test set> <output results file name> <cross-validation iteration number> \
                 <input parameters file> <n_epochs> <batch_size> <number of iterations for Constrastive Divergence> \
                 <1 - CD | 2 - PCD | 3 - FPCD>\n");
         exit(-1);
@@ -16,17 +18,18 @@ int main(int argc, char **argv){
     FILE *fp = NULL;
     Dataset *DatasetTrain = NULL, *DatasetTest = NULL;
     RBM *m = NULL;
-    
+
     Subgraph *Train = NULL, *Test = NULL;
     Train = ReadSubgraph(argv[1]);
     Test = ReadSubgraph(argv[2]);
-    
+
     DatasetTrain = Subgraph2Dataset(Train);
     DatasetTest = Subgraph2Dataset(Test);
-    
+
     fp = fopen(fileName, "r");
-    if(!fp){
-        fprintf(stderr,"\nUnable to open file %s.\n", fileName);
+    if (!fp)
+    {
+        fprintf(stderr, "\nUnable to open file %s.\n", fileName);
         exit(1);
     }
     fscanf(fp, "%d %lf %lf %lf", &n_hidden_units, &eta, &lambda, &alpha);
@@ -34,50 +37,51 @@ int main(int argc, char **argv){
     fscanf(fp, "%lf %lf", &eta_min, &eta_max);
     WaiveLibDEEPComment(fp);
     fclose(fp);
-    
-    fprintf(stderr,"\nCreating and initializing RBM ... ");
+
+    fprintf(stderr, "\nCreating and initializing RBM ... ");
     m = CreateRBM(Train->nfeats, n_hidden_units, 1);
     m->eta = eta;
     m->lambda = lambda;
     m->alpha = alpha;
     m->eta_min = eta_min;
     m->eta_max = eta_max;
-    InitializeWeights(m);    
+    InitializeWeights(m);
     InitializeBias4HiddenUnits(m);
     InitializeBias4VisibleUnitsWithRandomValues(m);
-    fprintf(stderr,"\nOk\n");
-    
-    fprintf(stderr,"\nTraining RBM ...\n");
-    switch (op){
-        case 1:
-            errorTRAIN = BernoulliRBMTrainingbyContrastiveDivergence(DatasetTrain, m, n_epochs, 1, batch_size);
+    fprintf(stderr, "\nOk\n");
+
+    fprintf(stderr, "\nTraining RBM ...\n");
+    switch (op)
+    {
+    case 1:
+        errorTRAIN = BernoulliRBMTrainingbyContrastiveDivergence(DatasetTrain, m, n_epochs, 1, batch_size);
         break;
-        case 2:
-            errorTRAIN = BernoulliRBMTrainingbyPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
+    case 2:
+        errorTRAIN = BernoulliRBMTrainingbyPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
         break;
-        case 3:
-            errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
+    case 3:
+        errorTRAIN = BernoulliRBMTrainingbyFastPersistentContrastiveDivergence(DatasetTrain, m, n_epochs, n_gibbs_sampling, batch_size);
         break;
     }
-    fprintf(stderr,"\nOK\n");
-    
-    fprintf(stderr,"\nRunning RBM for reconstruction ... ");
+    fprintf(stderr, "\nOK\n");
+
+    fprintf(stderr, "\nRunning RBM for reconstruction ... ");
     errorTEST = BernoulliRBMReconstruction(DatasetTest, m);
-    fprintf(stderr,"\nOK\n");
-    
-    fprintf(stderr,"\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
-    
+    fprintf(stderr, "\nOK\n");
+
+    fprintf(stderr, "\nTraining Error: %lf \nTesting Error: %lf\n\n", errorTRAIN, errorTEST);
+
     fprintf(stderr, "\nSaving outputs ... ");
     fp = fopen(argv[3], "a");
-    fprintf(fp,"\n%d %lf %lf", iteration, errorTRAIN, errorTEST);
+    fprintf(fp, "\n%d %lf %lf", iteration, errorTRAIN, errorTEST);
     fclose(fp);
     fprintf(stderr, "Ok!\n");
-    
+
     DestroyDataset(&DatasetTrain);
     DestroyDataset(&DatasetTest);
     DestroySubgraph(&Train);
     DestroySubgraph(&Test);
     DestroyRBM(&m);
-    
+
     return 0;
 }
