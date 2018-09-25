@@ -1,0 +1,2 @@
+100 0.1 0.1 0.00001 #<number of hidden units> <learning rate> <weight decay> <momentum>
+0.1 0.9 #<minimum learning rate> <maximum learning rate>
