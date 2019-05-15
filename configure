@@ -3,7 +3,7 @@
 # checking if the Enviroment variable is already configured
 if [ $LIBDEEP_DIR ] 
 then 
-    echo "# The Enviroment variable LIBDEEP_DIR=${LIBDEEP_DIR} is already seted, nothing to do here."
+    echo "# The Enviroment variable LIBDEEP_DIR=${LIBDEEP_DIR} is already set, nothing to do here."
     exit
 fi
 
@@ -55,7 +55,7 @@ fi
 # checking if the Enviroment variable is already configured
 if [ $LIBDEEP_DIR ] 
 then 
-    echo "# The Enviroment variable LIBDEEP_DIR=${LIBDEEP_DIR} is already seted, nothing to do here."
+    echo "# The Enviroment variable LIBDEEP_DIR=${LIBDEEP_DIR} is already set, nothing to do here."
 else
     LIBDEEP_DIR=$(pwd)
     
