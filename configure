@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# checking if the Enviroment variable is already configured
+if [ $LIBDEEP_DIR ] 
+then 
+    echo "# The Enviroment variable LIBDEEP_DIR=${LIBDEEP_DIR} is already set, nothing to do here."
+    exit
+fi
+
+########## Checking the other libraries Enviroment Variables ##########
+
+if [ $OPF_DIR ] 
+then
+    echo "OPF_DIR:... OK!"
+else
+    tput setaf 1; echo "ERROR: You should configure and compile LibOPF first."; tput sgr0
+    echo "Exiting due to the previous errors..."
+    exit
+fi 
+####################################################
+
+
+########## GSL DOWNLOAD AND CONFIGURATION ##########
+# checking GSL existence
+# if is gretter than one the GSL library is probably installed.
+if [ $(whereis libgsl | wc -w) -gt 1 ] 
+then 
+	echo "GNU Scientific Library (GSL) is already installed, nothing to do here."
+else
+	printf "We will now perform the GNU Scientific Library (GSL) configuration and instalation. \n\n"
+	# creating a temporary directory
+	mkdir tmp
+	# downloading the lastest version of the GNU Scientific Library (GSL)
+	wget ftp://ftp.gnu.org/gnu/gsl/gsl-latest.tar.gz -P tmp/
+	# extracting the downloaded file
+	tar -xf tmp/gsl-latest.tar.gz -C tmp/
+	# entering the GSL directory
+	cd tmp/gsl*/
+	# executiong the configuration file of the GSL
+	./configure
+	# compiling the GSL library
+	make
+	# installing the GSL library
+	make install
+	# returning to the original directory
+	cd ..
+	# deleting the temporary folder
+	rm -r tmp/
+fi
+####################################################
+
+########## Enviroment Variable Configuration ##########
+
+# adding the environment variable of the LibDEEP library to the .bashrc
+# checking if the Enviroment variable is already configured
+if [ $LIBDEEP_DIR ] 
+then 
+    echo "# The Enviroment variable LIBDEEP_DIR=${LIBDEEP_DIR} is already set, nothing to do here."
+else
+    LIBDEEP_DIR=$(pwd)
+    
+    echo "Adding Enviroment variable to ${LIBDEEP_DIR}."    
+    echo "" >> ~/.bashrc
+    echo "# added by LibDEEP" >> ~/.bashrc
+    echo "export LIBDEEP_DIR=${LIBDEEP_DIR}" >> ~/.bashrc
+    
+    echo "Please run the following on your current shell:"
+    echo "source ~/.bashrc"
+    echo "Or close this shell session and open a new one."
+fi 
+####################################################
